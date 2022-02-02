@@ -9,6 +9,8 @@ Load the provided corpus of documents and make a first analysis of words.
 library(tm)
 library(dplyr)
 library(tidytext)
+library(textstem)
+
 
 corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
 
@@ -17,15 +19,21 @@ corpus$tokens <- NA
 # lower text, remove punctuation and numbers, then remove stop-words
 clean_text <- function(corpus) {
   for(i in 1:nrow(corpus)) {
+    #remove punctuation 
     corpus$tokens[i] <- gsub("[^[:alpha:][:space:]]*","", tolower(corpus$text[i]))
     
-    if(corpus$languages[i] == "ENG")
+    #remove stop words
+    if (grepl("ENG",corpus$languages[i]))
       corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("english"))
-    else if (corpus$languages[i] == "ITA")
+    if (grepl("ITA",corpus$languages[i]))
       corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("italian"))
-    else
+    if (grepl("FRE",corpus$languages[i]))
       corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("french"))
+    
+    # lemmatization 
+    corpus$tokens[i] <- lemmatize_words(corpus$tokens[i])
   }
+  
   return(corpus)
 } 
 
@@ -33,7 +41,7 @@ corpus <- clean_text(corpus)
 
 # analysis of words in cleaned corpus
 letter_words <- corpus %>%
-  unnest_tokens(word, text) %>%
+  unnest_tokens(word, tokens) %>%
   count(index, word, sort = TRUE)
 
 
@@ -44,4 +52,9 @@ total_words <- letter_words %>%
 corpus_words <- left_join(letter_words, total_words)
 
 corpus_words
+
+# compute tf-idf for each word in the corpus
+letters_tf_idf <- corpus_words %>%
+  bind_tf_idf(word, index, n)
+
 ```
