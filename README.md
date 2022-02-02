@@ -29,7 +29,7 @@ Probabilmente un approccio misto: i primi obbiettivi sembrano essere unsupervise
   - remove punctuation
   - to lowercase
   - remove stop words
-  - stemming
+  - stemming (keep an eye on stemming when more than one language is used)
 
 - [ ] Some analysis on the dataset (?)
 
