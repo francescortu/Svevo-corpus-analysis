@@ -15,70 +15,98 @@ library(textstem)
 
 corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
 
+corpus$n <- corpus$n + 1
+names(corpus)[names(corpus) == 'n'] <- 'letter_number'
 corpus$tokens <- NA
+
+# add one column accounting for the most used language in each letter
+corpus$first_language <- substr(corpus$languages, 1,3)
 
 # lower text, remove punctuation and numbers, then remove stop-words
 clean_text <- function(corpus) {
   for(i in 1:nrow(corpus)) {
     #remove punctuation 
-    corpus$tokens[i] <- gsub("[^[:alpha:][:space:]]*","", tolower(corpus$text[i]))
+    corpus$tokens[i] <- gsub("[^a-zA-Z]+"," ", tolower(corpus$text[i]))
     
     #remove stop words
-    if (grepl("ENG",corpus$languages[i]))
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("english"))
-    if (grepl("ITA",corpus$languages[i]))
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("italian"))
-    if (grepl("FRE",corpus$languages[i]))
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("french"))
+    if (grepl("ENG",corpus$first_language[i])) {
+      lang = "english"
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
+    }
+    if (grepl("ITA",corpus$first_language[i])) {
+      lang = "italian"
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
+    }
+    if (grepl("FRE",corpus$first_language[i])) {
+      lang = "french"
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
+    }
+    if (grepl("GER",corpus$first_language[i])) {
+      lang = "german"
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
+    }
+      
+
     
-    # lemmatization 
-    corpus$tokens[i] <- lemmatize_words(corpus$tokens[i])
+    # lemmatization, for the moment I couldn't find a lemmatizer which works for every language
+    # corpus$tokens[i] <- lemmatize_words(corpus$tokens[i], lang = corpus$first_language[i])
+    
+    # stemming
+    stemDocument(corpus$text[i],language = lang)
   }
   
   return(corpus)
 } 
 
 corpus <- clean_text(corpus)
+```
+
+Carry out a first basic analysis of the dataset:
+
+
+```{r}
+library(ggplot2)
+
+# count the number of letters for each language
+ggplot(corpus, aes(x=as.factor(first_language), fill=as.factor(first_language))) + 
+  geom_bar( ) +
+  scale_fill_brewer(palette = "Set1") +
+  theme(legend.position="none") +
+  labs(x = "language", y = "number of letters")
+
+```
+
+```{r}
 
 # analysis of words in cleaned corpus
 letter_words <- corpus %>%
   unnest_tokens(word, tokens) %>%
-  count(index, word, sort = TRUE)
+  count(letter_number, word, sort = TRUE)
 
 
 total_words <- letter_words %>% 
-  group_by(index) %>% 
+  group_by(letter_number) %>% 
   summarize(total = sum(n))
 
 corpus_words <- left_join(letter_words, total_words)
-
 corpus_words
 
 # compute tf-idf for each word in the corpus
 letters_tf_idf <- corpus_words %>%
-  bind_tf_idf(word, index, n)
+  bind_tf_idf(word, letter_number, n)
 
+letters_tf_idf
+```
+
+Find 15 most relevant words in each document using tf-idf.
+
+```{r}
+letters_tf_idf[order(letters_tf_idf$tf_idf, decreasing = TRUE),]
+
+letters_tf_idf %>%
+  group_by(letter_number) %>%
+  slice_max(tf_idf, n = 15)
 
 
 ```
 
-Try to do some LDA analysis of topics:
-
-```{r lda}
-
-library(topicmodels)
-
-#create corpus object from the dataframe
-Corpus_obj <- Corpus(VectorSource(corpus$token))
-
-#Compute Document term matrix from the corpus object
-TDM <- DocumentTermMatrix(Corpus_obj, control = list(bounds = list(global = c(5, Inf))))
-
-#Compute the LDA
-topicModel <- LDA(TDM, 5, method = "VEM")
-
-#Print the first 10 words for each topics
-terms(topicModel, 17)
-
-#
-```
