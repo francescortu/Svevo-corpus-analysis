@@ -2,7 +2,7 @@
 
 Final project for "Introduction to ML" @ UNITS-DSSC
 
-# OUR GOAL:
+## OUR GOAL:
 
 - Find main **topics** of discussion in the corpus
 - Find who are the **person** which each topic is more associated with
@@ -11,62 +11,95 @@ Final project for "Introduction to ML" @ UNITS-DSSC
 
 **Remember that our REAL goal isn't about solution but METODOLOGY: we need to have a clear idea on how solve the problem (or possibly to justify why we have found incorrect solution)**
 
-# Open questions
+## Open questions
 
-## 1\. Supervised or unsupervised ??
+**_1\. Supervised or unsupervised ??_**
 
 Probabilmente un approccio misto: i primi obbiettivi sembrano essere unsupervised, in quanto si tratta di trovare di pattern all'interno del nostro set. L'ultimo obbiettivo potrebbe supervised perche' il sentiment potrebbe essere la nostra response variable (e le lettere/topics potrebbero essere le covariate).
 
-# Road map
+## Road map
 
-- Problem statement
-- Some analysis on the dataset (?)
+- [ ] Main problem statement
 
-  - find #{letter per language}
-  - provide some recap of number of send and recived
+- [ ] Pre-processing set:
 
-- Pre-processing set:
-
+  - problem statement (Why we are doing this?)
+  - divide between languages
   - tokenize word
   - remove punctuation
   - to lowercase
   - remove stop words
   - stemming
 
-- Find main topic on a single letter (LDA?):
+- [ ] Some analysis on the dataset (?)
 
-  - find the most frequent words
+  - find #{letter per language}
+  - provide some recap of number of send and received letters
+  - find the most used words in the corpus (and, why not, for each letter)
+  - generate document-term-matrix
 
-- Sentiment analysis (supervised)on a single letter:
+- [ ] Find main topic on the entire corpus:
 
-  - choose what sentiments we want find
+  - discuss how to deal with different languages
+  - choose the technique:
+
+    - LDA
+    - text network analysis
+
+  - use the technique in our set
+
+  - discuss the result
+
+- [ ] Sentiment analysis (supervised)on a single letter:
+
+  - choose what sentiments we want find out
   - assign features to words
-  - set up train and test sent (we could use pre-processed set to build up the model or create our set. Which is the best option in term of cost and effectiveness?)
+  - set up train and test set (we could use pre-processed set to build up the model or create our set. Which is the best option in term of cost and effectiveness?)
   - find right model (tree, svm ...)
   - evaluate model
 
-# Brain storming
+## Brain storming
 
 More ways to the first GOAL:
 
 1. Consider the whole corpus and find main topics (finding the most used word ?)
 2. Find the main topic on each letter and compute an average.
 
-# Problem statement
+## 1 Pre-processing
 
-Maybe we need formal problem statement for each GOAL.
+## 2 Find main topic of the corpus
 
-## Find main topic of the corpus
-
-Statement     | Description
-:------------ | :----------------------------------------
-Input         | a set D={d : d is a letter from/to Svevo}
-Output        | an or more element T unknown
-Learning data | no (?)
-Dataset       | Corpus of Italo Svevo
+Statement  | Description
+:--------- | :-----------------------------------------------------------
+Input      | a set X of processed set D={d : d is a letter from/to Svevo}
+Output     | an or more element T unknown
+Technique  | LDA (?)
+R packages | _tm_, _topicmodels_
 
 ```
-Given a set of letters find the most relevant topic (topics)
+Given a set X of word find the most relevant topic (topics) T
 ```
 
-Must define what is a topic:
+where a topic is :
+
+```
+A topic T is a distribution over words
+```
+
+### How LDA works (magic)
+
+Key points are:
+
+- Every document is a mixture of topics
+- Every topics is a mixture of words
+- languages do not count
+
+#### Input
+
+K = number of topics. **We have to discuss how to choose K and other hyper-parameters.**
+
+M = document-term-matrix
+
+#### Output
+
+T = set of topics (each topics is a collection of "correlated words") Each topic has a posterior probability
