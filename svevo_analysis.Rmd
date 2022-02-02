@@ -1,0 +1,45 @@
+---
+title: "ML_final_project"
+output: html_document
+---
+
+Load the provided corpus of documents and make a first analysis of words.
+
+```{r}
+library(tm)
+library(dplyr)
+library(tidytext)
+
+corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
+
+# remove punctuation and numbers, then remove stop-words
+clean_text <- function(corpus) {
+  for(i in 1:nrow(corpus)) {
+    corpus$text[i] <- gsub("[^[:alpha:][:space:]]*","", corpus$text[i])
+    
+    if(corpus$languages[i] == "ENG")
+      corpus$text[i] <- removeWords(corpus$text[i], stopwords("english"))
+    else if (corpus$languages[i] == "ITA")
+      corpus$text[i] <- removeWords(corpus$text[i], stopwords("italian"))
+    else
+      corpus$text[i] <- removeWords(corpus$text[i], stopwords("french"))
+  }
+    
+} 
+
+clean_text(corpus)
+
+# analysis of words in cleaned corpus
+letter_words <- corpus %>%
+  unnest_tokens(word, text) %>%
+  count(index, word, sort = TRUE)
+
+
+total_words <- letter_words %>% 
+  group_by(index) %>% 
+  summarize(total = sum(n))
+
+corpus_words <- left_join(letter_words, total_words)
+
+corpus_words
+```
