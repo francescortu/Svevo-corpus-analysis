@@ -103,3 +103,16 @@ M = document-term-matrix
 #### Output
 
 T = set of topics (each topics is a collection of "correlated words") Each topic has a posterior probability
+
+
+# Sentiment analysis:
+
+  - Sentiments_V0, first skimming just three kind of simple sentiments:
+
+    - <span style="color: green">Positive</span>
+    - <span style="color: red">Negative</span>
+    - <span style="color: gray">Neutral</span>.
+
+
+  - Sentiments_V1, a more complex system of sentiments could be:
+    - 
