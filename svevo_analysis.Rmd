@@ -12,22 +12,24 @@ library(tidytext)
 
 corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
 
-# remove punctuation and numbers, then remove stop-words
+corpus$tokens <- NA
+
+# lower text, remove punctuation and numbers, then remove stop-words
 clean_text <- function(corpus) {
   for(i in 1:nrow(corpus)) {
-    corpus$text[i] <- gsub("[^[:alpha:][:space:]]*","", corpus$text[i])
+    corpus$tokens[i] <- gsub("[^[:alpha:][:space:]]*","", tolower(corpus$text[i]))
     
     if(corpus$languages[i] == "ENG")
-      corpus$text[i] <- removeWords(corpus$text[i], stopwords("english"))
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("english"))
     else if (corpus$languages[i] == "ITA")
-      corpus$text[i] <- removeWords(corpus$text[i], stopwords("italian"))
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("italian"))
     else
-      corpus$text[i] <- removeWords(corpus$text[i], stopwords("french"))
+      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords("french"))
   }
-    
+  return(corpus)
 } 
 
-clean_text(corpus)
+corpus <- clean_text(corpus)
 
 # analysis of words in cleaned corpus
 letter_words <- corpus %>%
