@@ -12,6 +12,7 @@ library(tidytext)
 library(textstem)
 
 
+
 corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
 
 corpus$tokens <- NA
@@ -57,4 +58,27 @@ corpus_words
 letters_tf_idf <- corpus_words %>%
   bind_tf_idf(word, index, n)
 
+
+
+```
+
+Try to do some LDA analysis of topics:
+
+```{r lda}
+
+library(topicmodels)
+
+#create corpus object from the dataframe
+Corpus_obj <- Corpus(VectorSource(corpus$token))
+
+#Compute Document term matrix from the corpus object
+TDM <- DocumentTermMatrix(Corpus_obj, control = list(bounds = list(global = c(5, Inf))))
+
+#Compute the LDA
+topicModel <- LDA(TDM, 5, method = "VEM")
+
+#Print the first 10 words for each topics
+terms(topicModel, 17)
+
+#
 ```
