@@ -158,6 +158,7 @@ faresti
 farete
 farà
 farò
+fatto
 fece
 fecero
 feci
@@ -380,6 +381,7 @@ oggi
 domani
 uno
 due
+tre
 tre
 quattro
 qualche
