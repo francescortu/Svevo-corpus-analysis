@@ -1,9 +1,10 @@
 
 #Try to do some LDA analysis of topics:
   
-
+corpus <- data.frame(read.csv("cleaned_svevo_dataset.csv"))
 
 library(topicmodels)
+library(tm)
 
 #create corpus object from the dataframe
 Corpus_obj <- Corpus(VectorSource(corpus$tokens))
