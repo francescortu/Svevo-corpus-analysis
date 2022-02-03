@@ -3,108 +3,16 @@ title: "ML_final_project"
 output: html_document
 ---
 
-```{r library}
-# To combine python and R
-library(reticulate)
-```
 
 Load the provided corpus of documents and make a first analysis of words.
 
 ```{r}
-library(tm)
-library(dplyr)
-library(tidytext)
-library(textstem)
-library(data.table)
+# Load dataset with lemmatized words
 
 
-corpus <- read.csv("svevo_letters.csv", sep=";", encoding = "UTF-8")
+corpus <- read.csv("csv/cleaned_svevo_dataset.csv", sep=",", encoding = "UTF-8")
+corpus$tokens <- corpus$lemmatized_tokens # make tokens the lemmatized ones
 
-
-corpus$n <- corpus$n + 1
-names(corpus)[names(corpus) == 'n'] <- 'letter_number'
-
-names(corpus)[names(corpus) == 'corpus'] <- 'pair'
-corpus$pair <- gsub("Schmitz","Svevo", corpus$pair)
-  
-corpus$tokens <- NA
-
-sw_list_ita <- scan("stopwords_ita.txt", what="", sep="\n")
-sw_list_eng <- scan("stopwords_eng.txt", what="", sep="\n")
-
-# lower text, remove punctuation and numbers, then remove stop-words
-clean_text <- function(corpus) {
-  for(i in 1:nrow(corpus)) {
-    #remove punctuation 
-    corpus$tokens[i] <- gsub("[^a-zA-Z]+"," ", tolower(corpus$text[i]))
-    #remove words shorter than 3 chars
-    corpus$tokens[i] <- gsub('\\b\\w{1,2}\\b',"", tolower(corpus$tokens[i]))
-    
-    #remove stop words
-    if (grepl("ENG",corpus$mainLanguage[i])) {
-      lang = "english"
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], c(stopwords(lang),  sw_list_eng))
-    }
-    if (grepl("ITA",corpus$mainLanguage[i])) {
-      lang = "italian"
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], c(stopwords(lang), sw_list_ita))
-    }
-    if (grepl("FRE",corpus$mainLanguage[i])) {
-      lang = "french"
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
-    }
-    if (grepl("GER",corpus$mainLanguage[i])) {
-      lang = "german"
-      corpus$tokens[i] <- removeWords(corpus$tokens[i], stopwords(lang))
-    }
-
-    
-    # lemmatization, for the moment I couldn't find a lemmatizer which works for every language
-    # corpus$tokens[i] <- lemmatize_words(corpus$tokens[i], lang = corpus$mainLanguage[i])
-    
-    # stemming
-    #corpus$tokens[i] <- stemDocument(corpus$tokens[i],language = lang)
-  }
-  
-  return(corpus)
-} 
-
-corpus <- clean_text(corpus)
-fwrite(corpus, paste0("cleaned_svevo_dataset.csv"),col.names = TRUE)
-
-```
-
-```{python}
-# If u have problem to setting up :https://rstudio.github.io/reticulate/
-# Need pandas, numpy spacy as py library
-import pandas
-import pandas as pd
-import numpy
-sett = pd.read_csv("cleaned_svevo_dataset.csv")
-sett["doc"] =""
-sett["lemmatized_tokens"] = ""
-
-
-import spacy
-nlp_ita = spacy.load("it_core_news_sm")
-nlp_eng = spacy.load("en_core_web_sm")
-nlp_fr = spacy.load("fr_core_news_sm")
-nlp_de = spacy.load("de_core_news_sm")
-
-for x in range(sett.shape[0]):
-    if sett["mainLanguage"][x] == "ITA" :
-        sett["doc"][x] = nlp_ita(sett["tokens"][x])
-    if sett["mainLanguage"][x] == "ENG" :
-        sett["doc"][x] = nlp_eng(sett["tokens"][x])
-    if sett["mainLanguage"][x] == "FRE" :
-        sett["doc"][x] = nlp_fr(sett["tokens"][x])
-    if sett["mainLanguage"][x] == "GER" :
-        sett["doc"][x] = nlp_de(sett["tokens"][x])
-
-
-for i in range(sett.shape[0]):
-    sett["lemmatized_tokens"][i] = " ".join(token.lemma_ for token in sett["doc"][i])
-sett.to_csv("cleaned_svevo_dataset.csv")
 ```
 
 
@@ -139,6 +47,7 @@ receivers <- corpus %>%
 receivers
 
 ```
+
 Analyze words wrt the entire corpus. Look at which are the most used terms in the entire corpus.
 ```{r}
 library(dplyr)
@@ -161,7 +70,9 @@ corpus_words %>%
 
 
 ```
+
 Re-do previous analysis but wrt to who the letters are addressed to.
+In particular, 10 most important words in letters to Livia and Joyce are compared.
 
 ```{r}
 library(dplyr)
@@ -262,13 +173,11 @@ First of all build term-document matrix
 ```{r}
 library(tm)
 
-df <- corpus[-which(corpus$pair == "Svevo Livia"),]
-C <- Corpus(VectorSource(df$tokens))
+C <- Corpus(VectorSource(corpus$tokens))
 tdm <- DocumentTermMatrix(C, control = list(bounds = list(global = c(5, Inf))))
 
-inspect(tdm[202:205, 10:50])
 
-ap_lda <- LDA(tdm, k = 10, method = "Gibbs", control = list(seed = 1234)) # A LDA_VEM topic model with 5 topics.
+ap_lda <- LDA(tdm, k = 5, method = "Gibbs", control = list(seed = 1234)) # A LDA_VEM topic model with 5 topics.
 
 # per-topic-per-word probabilities
 ap_topics <- tidy(ap_lda, matrix = "beta")
