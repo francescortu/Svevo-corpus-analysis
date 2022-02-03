@@ -172,12 +172,13 @@ First of all build term-document matrix
 
 ```{r}
 library(tm)
+library(topicmodels)
 
 C <- Corpus(VectorSource(corpus$tokens))
 tdm <- DocumentTermMatrix(C, control = list(bounds = list(global = c(5, Inf))))
 
 
-ap_lda <- LDA(tdm, k = 5, method = "Gibbs", control = list(seed = 1234)) # A LDA_VEM topic model with 5 topics.
+ap_lda <- LDA(tdm, k = 5, control = list(seed = 1234)) # A LDA_VEM topic model with 5 topics.
 
 # per-topic-per-word probabilities
 ap_topics <- tidy(ap_lda, matrix = "beta")
