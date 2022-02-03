@@ -4,6 +4,7 @@ output: html_document
 ---
 
 ```{r library}
+# To combine python and R
 library(reticulate)
 ```
 
@@ -74,6 +75,8 @@ fwrite(corpus, paste0("cleaned_svevo_dataset.csv"),col.names = TRUE)
 ```
 
 ```{python}
+# If u have problem to setting up :https://rstudio.github.io/reticulate/
+# Need pandas, numpy spacy as py library
 import pandas
 import pandas as pd
 import numpy
