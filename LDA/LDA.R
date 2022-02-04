@@ -53,7 +53,13 @@ coer_on_multiple_K <- multiple_K_coherence(max_K, dtm) # takes a lot of time!!!!
 
 write.csv(coer_on_multiple_K, "coherhence.csv")
 
-ggplot()
+ggplot() +
+  geom_point(aes(x = 5, y = coer_on_multiple_K[5]), col = "red", size = 3) +
+  geom_line(aes(x = c(1:max_K), y = coer_on_multiple_K), col = "violet") + 
+  xlab("K") + 
+  ylab("Coherence")
+
+
 plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
 
 coer_on_multiple_K
