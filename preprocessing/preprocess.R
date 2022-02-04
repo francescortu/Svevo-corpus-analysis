@@ -59,3 +59,4 @@ fwrite(corpus, paste0("../csv/cleaned_svevo_dataset.csv"),col.names = TRUE)
 
 # call python script to lemmatize tokens wrt the language used in each letter
 system('python lemmatize.py')
+

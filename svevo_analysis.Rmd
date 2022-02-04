@@ -21,6 +21,7 @@ Carry out a first basic analysis of the dataset:
 
 ```{r}
 library(ggplot2)
+library(dplyr)
 
 # count the number of letters for each language
 ggplot(corpus, aes(x=as.factor(mainLanguage), fill=as.factor(mainLanguage))) + 
@@ -52,6 +53,8 @@ Analyze words wrt the entire corpus. Look at which are the most used terms in th
 ```{r}
 library(dplyr)
 library(tidyverse)
+library(tidytext)
+
 
 # all the words contained in the letters and the m=number of time they appear
 corpus_words <- corpus %>%
@@ -180,9 +183,9 @@ tdm <- DocumentTermMatrix(C, control = list(bounds = list(global = c(5, Inf))))
 
 ap_lda <- LDA(tdm, k = 5, control = list(seed = 1234)) # A LDA_VEM topic model with 5 topics.
 
+
 # per-topic-per-word probabilities
 ap_topics <- tidy(ap_lda, matrix = "beta")
-
 
 # find first 10 terms most related with each topic
 library(ggplot2)
@@ -202,5 +205,147 @@ ap_top_terms %>%
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
   scale_y_reordered()
+
+# per-document-per-topic probabilities
+# for each topic-document pair assign a value
+ap_documents <- tidy(ap_lda, matrix = "gamma")
+ap_documents
+
+```
+
+Measure perplexity in our trained LDA.
+```{r}
+
+library(topicmodels)
+library(doParallel)
+library(ggplot2)
+library(scales)
+
+burnin = 1000
+iter = 1000
+keep = 50
+# define our "full data"
+full_data  <- tdm
+n <- nrow(full_data)
+
+#-----------validation--------
+k <- 5 # number of topics
+splitter <- sample(1:n, round(n * 0.75))
+train_set <- full_data[splitter, ]
+valid_set <- full_data[-splitter, ]
+fitted <- LDA(train_set, k = k, method = "Gibbs",
+                          control = list(burnin = burnin, iter = iter, keep = keep) )
+perplexity(fitted, newdata = train_set)
+perplexity(fitted, newdata = valid_set)
+
+```
+
+Using perplexity and CV to choose k:
+
+```{r}
+#----------------5-fold cross-validation, different numbers of topics----------------
+
+cluster <- makeCluster(detectCores(logical = TRUE) - 1) # leave one CPU spare...
+registerDoParallel(cluster)
+clusterEvalQ(cluster, {
+   library(topicmodels)
+})
+
+folds <- 5
+splitfolds <- sample(1:folds, n, replace = TRUE)
+candidate_k <- seq(2,20,2) # candidates for how many topics
+clusterExport(cluster, c("full_data", "burnin", "iter", "keep", "splitfolds", "folds", "candidate_k"))
+
+system.time({
+results <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
+   k <- candidate_k[j]
+   results_1k <- matrix(0, nrow = folds, ncol = 2)
+   colnames(results_1k) <- c("k", "perplexity")
+   for(i in 1:folds){
+      train_set <- full_data[splitfolds != i , ]
+      valid_set <- full_data[splitfolds == i, ]
+      
+      fitted <- LDA(train_set, k = k, method = "Gibbs",
+                    control = list(burnin = burnin, iter = iter, keep = keep) )
+      results_1k[i,] <- c(k, perplexity(fitted, newdata = valid_set))
+   }
+   return(results_1k)
+}
+})
+stopCluster(cluster)
+results_df <- as.data.frame(results)
+
+ggplot(results_df, aes(x = k, y = perplexity)) +
+   geom_point() +
+   geom_smooth(se = FALSE) +
+   ggtitle("5-fold cross-validation of topic modelling",
+           "(The points represent five different models fit for each candidate number of topics)") +
+   labs(x = "K", y = "Perplexity when fitting the trained model to the hold-out set")
+
+
+```
+
+See topics for k = 20.
+
+```{r}
+
+fitted <- LDA(tdm, k = 20, method = "Gibbs",
+                    control = list(burnin = burnin, iter = iter, keep = keep) )
+
+# per-topic-per-word probabilities
+ap_topics <- tidy(fitted, matrix = "beta")
+
+# per-topic-per-word probabilities
+ap_topics <- tidy(fitted, matrix = "beta")
+
+# find first 10 terms most related with each topic
+library(ggplot2)
+library(dplyr)
+
+ap_top_terms <- ap_topics %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 15) %>% 
+  ungroup() %>%
+  arrange(topic, -beta)
+
+ap_top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+```
+
+```{r}
+#library(topicmodels)
+# library(tm)
+# library(textmineR)
+# 
+# cluster <- makeCluster(detectCores(logical = TRUE) - 1) # leave one CPU spare...
+# registerDoParallel(cluster)
+# clusterEvalQ(cluster, {
+#    library(topicmodels)
+# })
+# 
+# max_K <- 20
+# system.time({
+# multiple_K_coherence <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
+#   k <- candidate_k[j]
+#   set.seed(12345)
+#   coher <- c(1:max_K)
+#   for(i in c(1:max_K)){
+#     model <- LDA(dtm = tdm, 
+#                          k = i,
+#                          iterations = 500, #  recommend at least 500 iterations or more
+#                          burnin = 180) 
+#     coher[i] <- mean(model$coherence)
+#   }
+#   return(coher)
+# }
+# })
+# 
+# stopCluster(cluster)
+# coherence <- as.data.frame(multiple_K_coherence)
+
 
 ```
