@@ -253,7 +253,7 @@ clusterEvalQ(cluster, {
 
 folds <- 5
 splitfolds <- sample(1:folds, n, replace = TRUE)
-candidate_k <- seq(2,20,2) # candidates for how many topics
+candidate_k <- seq(2,50,2) # candidates for how many topics
 clusterExport(cluster, c("full_data", "burnin", "iter", "keep", "splitfolds", "folds", "candidate_k"))
 
 system.time({

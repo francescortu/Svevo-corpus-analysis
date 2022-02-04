@@ -1,10 +1,9 @@
-
-
 ############### LIBRARY ###################
 
 library(topicmodels)
 library(tm)
 library(textmineR)
+
 
 ##################  FUNCTIONS ###################
 multiple_K_coherence <- function(max_K, dtm){
@@ -47,11 +46,11 @@ dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of docum
                  cpus = 4) # default is all available cpus on the system
 
 ### Choose the best number of topics based on the number of topics
-max_K <- 20 #Max number of topics we want
+max_K <- 50 #Max number of topics we want
 
 coer_on_multiple_K <- multiple_K_coherence(max_K, dtm) # takes a lot of time!!!!!!!!
 
-write.csv(coer_on_multiple_K, "coherhence.csv")
+write.csv(coer_on_multiple_K, "coherence.csv")
 
 ggplot() +
   geom_point(aes(x = 5, y = coer_on_multiple_K[5]), col = "red", size = 3) +
@@ -60,15 +59,16 @@ ggplot() +
   ylab("Coherence")
 
 
-plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
+#plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
 
 coer_on_multiple_K
+argmax(coer_on_multiple_K)
 
 
 ############### ONE MODEL ANALYSIS ###################################
 #random fit
 set.seed(12345)
-num_topics <- 6 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
+num_topics <- 41 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
 #compute LDA with fixing value of K
 model <- FitLdaModel(dtm = dtm, 
                      k = num_topics,
@@ -118,3 +118,5 @@ model$summary <- data.frame(topic = rownames(model$phi),
 #print summary table
 model$summary[ order(model$summary$prevalence, decreasing = TRUE) , ][ 1:10 , ]
 
+# Save model to a file
+saveRDS(model, file = "LDA_corpus_topic_model.rds")
