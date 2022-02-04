@@ -22,14 +22,14 @@ multiple_K_coherence <- function(max_K, dtm){
                          calc_coherence = TRUE,
                          calc_r2 = FALSE,
                          cpus = 4) 
-    coher[i] <- mean(model$coherence)
+    coher[i] <- mean(model$coherence) 
   }
   return(coher)
 }
 
 ################# IMPORT DATA-SET ############
 
-corpus <- data.frame(read.csv("csv/cleaned_svevo_dataset.csv"))
+corpus <- data.frame(read.csv("../csv/cleaned_svevo_dataset_ITA.csv"))
 
 ##############################################
 #############################################
@@ -39,10 +39,10 @@ corpus <- data.frame(read.csv("csv/cleaned_svevo_dataset.csv"))
 dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of documents
                  doc_names = corpus$letter_number, # document names
                  ngram_window = c(1, 1), # minimum and maximum n-gram length
-                 lower = FALSE, # lowercase - this is the default value
-                 remove_punctuation = FALSE, # punctuation - this is the default
+                 lower = FALSE, 
+                 remove_punctuation = FALSE, 
                  stopword_vec = c(),
-                 remove_numbers = FALSE, # numbers - this is the default
+                 remove_numbers = FALSE, 
                  verbose = TRUE,
                  cpus = 4) # default is all available cpus on the system
 

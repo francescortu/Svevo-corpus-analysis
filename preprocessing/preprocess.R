@@ -7,6 +7,8 @@ library(data.table)
 
 # the following function performs all the steps needed to preprocess the whole corpus
 #adjust columns, lower text, remove punctuation and numbers, then remove stop-words
+sw_list_ita <- scan("stopwords_ita.txt", what="", sep="\n")
+sw_list_eng <- scan("stopwords_eng.txt", what="", sep="\n")
 clean_text <- function(corpus) {
   
   corpus$n <- corpus$n + 1
@@ -17,8 +19,7 @@ clean_text <- function(corpus) {
   
   corpus$tokens <- NA
   
-  sw_list_ita <- scan("stopwords_ita.txt", what="", sep="\n")
-  sw_list_eng <- scan("stopwords_eng.txt", what="", sep="\n")
+  
   
   for(i in 1:nrow(corpus)) {
     #remove punctuation
@@ -59,3 +60,13 @@ fwrite(corpus, paste0("../csv/cleaned_svevo_dataset.csv"),col.names = TRUE)
 
 # call python script to lemmatize tokens wrt the language used in each letter
 system('python lemmatize.py')
+
+####
+corpus <- read.csv("../csv/cleaned_svevo_dataset.csv", sep=",", encoding = "UTF-8")
+
+corpus_ita <- corpus[which(corpus$mainLanguage == "ITA"),]
+for(i in c(1:nrow(corpus_ita))){
+  corpus_ita$tokens[i] <- removeWords(corpus_ita$tokens[i], c(stopwords("italian"), sw_list_ita))
+}
+fwrite(corpus_ita, paste0("../csv/cleaned_svevo_dataset_ITA.csv"),col.names = TRUE)
+
