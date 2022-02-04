@@ -48,8 +48,14 @@ dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of docum
 
 ### Choose the best number of topics based on the number of topics
 max_K <- 20 #Max number of topics we want
+
 coer_on_multiple_K <- multiple_K_coherence(max_K, dtm) # takes a lot of time!!!!!!!!
+
+write.csv(coer_on_multiple_K, "coherhence.csv")
+
+ggplot()
 plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
+
 coer_on_multiple_K
 
 
