@@ -20,8 +20,8 @@ multiple_K_coherence <- function(max_K, dtm){
                          optimize_alpha = TRUE,
                          calc_likelihood = TRUE,
                          calc_coherence = TRUE,
-                         calc_r2 = TRUE,
-                         cpus = 2) 
+                         calc_r2 = FALSE,
+                         cpus = 8) 
     coher[i] <- mean(model$coherence)
   }
   return(coher)
@@ -42,24 +42,24 @@ dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of docum
                  lower = TRUE, # lowercase - this is the default value
                  remove_punctuation = TRUE, # punctuation - this is the default
                  remove_numbers = TRUE, # numbers - this is the default
-                 verbose = TRUE, # Turn off status bar for this demo
-                 cpus = 2) # default is all available cpus on the system
+                 verbose = TRUE,
+                 cpus = 4) # default is all available cpus on the system
 
 ### Choose the best number of topics based on the number of topics
 max_K <- 20 #Max number of topics we want
 coer_on_multiple_K <- multiple_K_coherence(max_K, dtm) # takes a lot of time!!!!!!!!
 plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
-
+coer_on_multiple_K
 
 
 ############### ONE MODEL ANALYSIS ###################################
 #random fit
 set.seed(12345)
-num_topics <- 10 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
+num_topics <- 6 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
 #compute LDA with fixing value of K
 model <- FitLdaModel(dtm = dtm, 
                      k = 20,
-                     iterations = 200, #  recommend at least 500 iterations or more
+                     iterations = 500, #  recommend at least 500 iterations or more
                      burnin = 180,
                      alpha = 0.1,
                      beta = 0.05,
@@ -67,10 +67,10 @@ model <- FitLdaModel(dtm = dtm,
                      calc_likelihood = TRUE,
                      calc_coherence = TRUE,
                      calc_r2 = TRUE,
-                     cpus = 2) 
+                     cpus = 8) 
 
 
-#print log-likelihood (higher is better)----TO DECIDE NUMBER OF ITERATIONS
+#print log-likelihood (higher is better)----TO DECIDE NUMBER OF ITERATIONS---not so important for us
 plot(model$log_likelihood, type = "l")
 
 #print summory of topic-coherence
