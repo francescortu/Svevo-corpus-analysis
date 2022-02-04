@@ -1,5 +1,5 @@
 
-#Try to do some LDA analysis of topics:
+
 ############### LIBRARY ###################
 
 library(topicmodels)
@@ -13,7 +13,7 @@ multiple_K_coherence <- function(max_K, dtm){
   for(i in c(1:max_K)){
     model <- FitLdaModel(dtm = dtm, 
                          k = i,
-                         iterations = 200, #  recommend at least 500 iterations or more
+                         iterations = 500, #  recommend at least 500 iterations or more
                          burnin = 180,
                          alpha = 0.1,
                          beta = 0.05,
@@ -21,7 +21,7 @@ multiple_K_coherence <- function(max_K, dtm){
                          calc_likelihood = TRUE,
                          calc_coherence = TRUE,
                          calc_r2 = FALSE,
-                         cpus = 8) 
+                         cpus = 4) 
     coher[i] <- mean(model$coherence)
   }
   return(coher)
@@ -39,9 +39,10 @@ corpus <- data.frame(read.csv("csv/cleaned_svevo_dataset.csv"))
 dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of documents
                  doc_names = corpus$letter_number, # document names
                  ngram_window = c(1, 1), # minimum and maximum n-gram length
-                 lower = TRUE, # lowercase - this is the default value
-                 remove_punctuation = TRUE, # punctuation - this is the default
-                 remove_numbers = TRUE, # numbers - this is the default
+                 lower = FALSE, # lowercase - this is the default value
+                 remove_punctuation = FALSE, # punctuation - this is the default
+                 stopword_vec = c(),
+                 remove_numbers = FALSE, # numbers - this is the default
                  verbose = TRUE,
                  cpus = 4) # default is all available cpus on the system
 
@@ -58,8 +59,8 @@ set.seed(12345)
 num_topics <- 6 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
 #compute LDA with fixing value of K
 model <- FitLdaModel(dtm = dtm, 
-                     k = 20,
-                     iterations = 500, #  recommend at least 500 iterations or more
+                     k = num_topics,
+                     iterations = 800, #  recommend at least 500 iterations or more
                      burnin = 180,
                      alpha = 0.1,
                      beta = 0.05,
@@ -67,7 +68,7 @@ model <- FitLdaModel(dtm = dtm,
                      calc_likelihood = TRUE,
                      calc_coherence = TRUE,
                      calc_r2 = TRUE,
-                     cpus = 8) 
+                     cpus = 4) 
 
 
 #print log-likelihood (higher is better)----TO DECIDE NUMBER OF ITERATIONS---not so important for us
@@ -83,7 +84,7 @@ model$prevalence <- colSums(model$theta) / sum(model$theta) * 100
 
 # prevalence should be proportional to alpha
 plot(model$prevalence, model$alpha, xlab = "prevalence", ylab = "alpha")
-model$top_terms <- GetTopTerms(phi = model$phi, M = 5)
+model$top_terms <- GetTopTerms(phi = model$phi, M = 10)
 
 # textmineR has a naive topic labeling tool based on probable bigrams
 model$labels <- LabelTopics(assignments = model$theta > 0.05, 
