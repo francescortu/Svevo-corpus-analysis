@@ -50,19 +50,19 @@ max_K <- 50 #Max number of topics we want
 
 coer_on_multiple_K <- multiple_K_coherence(max_K, dtm) # takes a lot of time!!!!!!!!
 
-write.csv(coer_on_multiple_K, "coherence.csv")
+write.csv(coer_on_multiple_K, "../csv/coherence.csv")
 
-ggplot() +
-  geom_point(aes(x = 5, y = coer_on_multiple_K[5]), col = "red", size = 3) +
-  geom_line(aes(x = c(1:max_K), y = coer_on_multiple_K), col = "violet") + 
+coer_on_multiple_K <- read.csv("../csv/coherence.csv", sep=",", encoding = "UTF-8")
+colnames(coer_on_multiple_K) <- c("k", "coherence")
+ggplot(coer_on_multiple_K) +
+  geom_point(aes(x = 26, y = coer_on_multiple_K$coherence[26]), col = "red", size = 3) +
+  geom_line(aes(x = k, y = coherence), col = "violet") + 
   xlab("K") + 
   ylab("Coherence")
 
+ggsave("../plots/coherence.png", width = 20, height = 8, dpi = 150)
 
-#plot(c(1:max_K), coer_on_multiple_K, type='l')  #plot results
-
-coer_on_multiple_K
-argmax(coer_on_multiple_K)
+which.max(coer_on_multiple_K$coherence) # find out which is the value which provides the best coherence
 
 
 ############### ONE MODEL ANALYSIS ###################################
@@ -120,3 +120,68 @@ model$summary[ order(model$summary$prevalence, decreasing = TRUE) , ][ 1:10 , ]
 
 # Save model to a file
 saveRDS(model, file = "LDA_corpus_topic_model.rds")
+
+
+##############################
+##############################
+## Perplexity index
+
+library(topicmodels)
+library(doParallel)
+library(ggplot2)
+library(scales)
+
+C <- Corpus(VectorSource(corpus$tokens))
+tdm <- DocumentTermMatrix(C, control = list(bounds = list(global = c(5, Inf))))
+
+burnin = 1000
+iter = 1000
+keep = 50
+# define our "full data"
+full_data  <- tdm
+n <- nrow(full_data)
+
+
+cluster <- makeCluster(detectCores(logical = TRUE) - 1) 
+registerDoParallel(cluster)
+clusterEvalQ(cluster, {
+  library(topicmodels)
+})
+
+folds <- 5
+splitfolds <- sample(1:folds, n, replace = TRUE)
+candidate_k <- seq(2,50,2) # candidates for how many topics
+clusterExport(cluster, c("full_data", "burnin", "iter", "keep", "splitfolds", "folds", "candidate_k"))
+
+system.time({
+  results <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
+    k <- candidate_k[j]
+    results_1k <- matrix(0, nrow = folds, ncol = 2)
+    colnames(results_1k) <- c("k", "perplexity")
+    for(i in 1:folds){
+      train_set <- full_data[splitfolds != i , ]
+      valid_set <- full_data[splitfolds == i, ]
+      
+      fitted <- LDA(train_set, k = k, method = "Gibbs",
+                    control = list(burnin = burnin, iter = iter, keep = keep) )
+      results_1k[i,] <- c(k, perplexity(fitted, newdata = valid_set))
+    }
+    return(results_1k)
+  }
+})
+
+stopCluster(cluster)
+results_df <- as.data.frame(results)
+
+write.csv(results_df, "../csv/perplexity.csv")
+
+
+ggplot(results_df, aes(x = k, y = perplexity)) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  ggtitle("5-fold cross-validation of topic modelling",
+          "(The points represent five different models fit for each candidate number of topics)") +
+  labs(x = "K", y = "Perplexity when fitting the trained model to the hold-out set")
+
+
+ggsave("../plots/perplexity.png", width = 20, height = 8, dpi = 150)

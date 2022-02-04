@@ -242,7 +242,7 @@ perplexity(fitted, newdata = valid_set)
 
 Using perplexity and CV to choose k:
 
-```{r}
+```{r, eval = FALSE}
 #----------------5-fold cross-validation, different numbers of topics----------------
 
 cluster <- makeCluster(detectCores(logical = TRUE) - 1) # leave one CPU spare...
@@ -266,7 +266,7 @@ results <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
       valid_set <- full_data[splitfolds == i, ]
       
       fitted <- LDA(train_set, k = k, method = "Gibbs",
-                    control = list(burnin = burnin, iter = iter, keep = keep) )
+                    control = list(burnin = burnin, iter = iter, keep = keep))
       results_1k[i,] <- c(k, perplexity(fitted, newdata = valid_set))
    }
    return(results_1k)
@@ -314,38 +314,4 @@ ap_top_terms %>%
   geom_col(show.legend = FALSE) +
   facet_wrap(~ topic, scales = "free") +
   scale_y_reordered()
-```
-
-```{r}
-#library(topicmodels)
-# library(tm)
-# library(textmineR)
-# 
-# cluster <- makeCluster(detectCores(logical = TRUE) - 1) # leave one CPU spare...
-# registerDoParallel(cluster)
-# clusterEvalQ(cluster, {
-#    library(topicmodels)
-# })
-# 
-# max_K <- 20
-# system.time({
-# multiple_K_coherence <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
-#   k <- candidate_k[j]
-#   set.seed(12345)
-#   coher <- c(1:max_K)
-#   for(i in c(1:max_K)){
-#     model <- LDA(dtm = tdm, 
-#                          k = i,
-#                          iterations = 500, #  recommend at least 500 iterations or more
-#                          burnin = 180) 
-#     coher[i] <- mean(model$coherence)
-#   }
-#   return(coher)
-# }
-# })
-# 
-# stopCluster(cluster)
-# coherence <- as.data.frame(multiple_K_coherence)
-
-
 ```
