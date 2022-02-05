@@ -333,7 +333,6 @@ Load italian letters.
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
 corpus_ita$tokens <- corpus_ita$lemmatized_tokens # make tokens the lemmatized ones
 
-
 ```
 
 Build LDA model, with k = 26.
@@ -398,7 +397,9 @@ lda_ita$summary <- data.frame(topic = rownames(lda_ita$phi),
                             stringsAsFactors = FALSE)
 
 #print summary table
-lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ][ 1:20 , ]
+lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ]#[ 1:20 , ]
+
+SummarizeTopics(lda_ita)
 
 ```
 
@@ -425,13 +426,171 @@ table(d)
 rowSums(d)
 
 most_distant <- names(sort(rowSums(d), decreasing = TRUE)[1:10])
-most_relevant <- (lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ][ 1:10 , ])$topic
+most_relevant <- (lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ][ 1:10, ])$topic
 
 chosen_topics <- intersect(most_distant, most_relevant) 
 
 lda_ita$summary[ lda_ita$summary$topic %in% chosen_topics , ]
 
+```
+
+
+
+```{r}
+library(textmineR)
+
+#random fit
+set.seed(12345)
+num_topics <- 5
+#compute LDA with fixing value of K
+lda_ita2 <- FitLdaModel(dtm = dtm, 
+                     k = num_topics,
+                     iterations = 2000, #  recommend at least 500 iterations or more
+                     burnin = 180,
+                     alpha = 0.1,
+                     beta = 0.05,
+                     optimize_alpha = TRUE,
+                     calc_likelihood = TRUE,
+                     calc_coherence = TRUE,
+                     calc_r2 = TRUE,
+                     cpus = 4) 
+
+lda_ita2$prevalence <- colSums(lda_ita2$theta) / sum(lda_ita2$theta) * 100
+
+lda_ita2$top_terms <- GetTopTerms(phi = lda_ita2$phi, M = 10)
+
+# textmineR has a naive topic labeling tool based on probable bigrams
+lda_ita2$labels <- LabelTopics(assignments = lda_ita2$theta > 0.05, 
+                            dtm = dtm,
+                            M = 1)
+
+head(lda_ita2$labels)
+
+# put them together, with coherence into a summary table
+lda_ita2$summary <- data.frame(topic = rownames(lda_ita2$phi),
+                            label = lda_ita2$labels,
+                            coherence = round(lda_ita2$coherence, 3),
+                            prevalence = round(lda_ita2$prevalence,3),
+                            top_terms = apply(lda_ita2$top_terms, 2, function(x){
+                              paste(x, collapse = ", ")
+                            }),
+                            stringsAsFactors = FALSE)
+
+lda_ita2$summary[ order(lda_ita2$summary$prevalence, decreasing = TRUE) , ]
+
+
 
 ```
 
 
+Analyze how topics evolved over time:
+
+```{r}
+#input: one topic
+#output: its trend over time
+
+# obtain document-topic probabilities
+#lda_ita2$theta
+# number are those of italian letters in the original corpus
+
+topic_time <- data.frame(lda_ita2$theta)
+topic_time$date <- format(as.Date(corpus_ita$date, format="%d/%m/%Y"),"%Y")
+
+head(topic_time)
+#remove NA
+topic_time<-na.omit(topic_time)
+
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+
+sum_topic <- topic_time %>%
+  group_by(date) %>%
+  summarise(across(everything(), sum))
+
+sum_topic  %>%
+    gather(key,value, t_1, t_2, t_3, t_4, t_5) %>%
+    ggplot() +
+    geom_line(aes(x=date, y=value, colour=key, group = 1),ylab="")+
+    geom_point(aes(x=date, y=value, colour=key, group = 1),ylab="")
+
+```
+
+
+
+We could try to select just those documents which present a more clear discussion about just one or a few topics.
+
+# ```{r}
+# library(dplyr)
+# library(textmineR)
+# 
+# # add reference to letter number
+# topic_time$letter_number <- rownames(topic_time)
+# 
+# mark_doc <- topic_time %>% 
+#   filter(if_any(starts_with('t_'), ~ . > 0.6))
+# 
+# corpus_450 <- corpus_ita[which(corpus_ita$letter_number %in% mark_doc$letter_number),]
+# 
+# 
+# #compute document-term-matrix
+# dtm_450 <- CreateDtm(doc_vec = corpus_450$lemmatized_tokens, # character vector of documents
+#                  doc_names = corpus_450$letter_number, # document names
+#                  ngram_window = c(1, 1), # minimum and maximum n-gram length
+#                  lower = FALSE, 
+#                  remove_punctuation = FALSE, 
+#                  stopword_vec = c(),
+#                  remove_numbers = FALSE, 
+#                  verbose = TRUE,
+#                  cpus = 4) # default is all available cpus on the system
+# 
+# 
+# 
+# #random fit
+# set.seed(12345)
+# num_topics <- 5
+# #compute LDA with fixing value of K
+# lda_450 <- FitLdaModel(dtm = dtm_450, 
+#                      k = num_topics,
+#                      iterations = 2000, #  recommend at least 500 iterations or more
+#                      burnin = 180,
+#                      alpha = 0.1,
+#                      beta = 0.05,
+#                      optimize_alpha = TRUE,
+#                      calc_likelihood = TRUE,
+#                      calc_coherence = TRUE,
+#                      calc_r2 = TRUE,
+#                      cpus = 4) 
+# 
+# # Analysis of main topics obtained.
+# 
+# lda_450$prevalence <- colSums(lda_450$theta) / sum(lda_450$theta) * 100
+# 
+# lda_450$top_terms <- GetTopTerms(phi = lda_450$phi, M = 10)
+# 
+# # textmineR has a naive topic labeling tool based on probable bigrams
+# lda_450$labels <- LabelTopics(assignments = lda_450$theta > 0.05, 
+#                             dtm = dtm_450,
+#                             M = 1)
+# 
+# head(lda_450$labels)
+# 
+# # put them together, with coherence into a summary table
+# lda_450$summary <- data.frame(topic = rownames(lda_450$phi),
+#                             label = lda_450$labels,
+#                             coherence = round(lda_450$coherence, 3),
+#                             prevalence = round(lda_450$prevalence,3),
+#                             top_terms = apply(lda_450$top_terms, 2, function(x){
+#                               paste(x, collapse = ", ")
+#                             }),
+#                             stringsAsFactors = FALSE)
+# 
+# #print summary table
+# lda_450$summary[ order(lda_450$summary$prevalence, decreasing = TRUE) , ]#[ 1:20 , ]
+# 
+# SummarizeTopics(lda_450)
+#```

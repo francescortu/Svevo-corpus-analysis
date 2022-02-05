@@ -54,6 +54,7 @@ write.csv(coer_on_multiple_K, "../csv/coherence.csv")
 
 coer_on_multiple_K <- read.csv("../csv/coherence.csv", sep=",", encoding = "UTF-8")
 colnames(coer_on_multiple_K) <- c("k", "coherence")
+
 ggplot(coer_on_multiple_K) +
   geom_point(aes(x = 26, y = coer_on_multiple_K$coherence[26]), col = "red", size = 3) +
   geom_line(aes(x = k, y = coherence), col = "violet") + 
@@ -62,13 +63,13 @@ ggplot(coer_on_multiple_K) +
 
 ggsave("../plots/coherence.png", width = 20, height = 8, dpi = 150)
 
-which.max(coer_on_multiple_K$coherence) # find out which is the value which provides the best coherence
+argmax_k <- which.max(coer_on_multiple_K$coherence) # find out which is the value which provides the best coherence
 
 
 ############### ONE MODEL ANALYSIS ###################################
 #random fit
 set.seed(12345)
-num_topics <- 41 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
+num_topics <- argmax_k # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
 #compute LDA with fixing value of K
 model <- FitLdaModel(dtm = dtm, 
                      k = num_topics,
@@ -86,7 +87,7 @@ model <- FitLdaModel(dtm = dtm,
 #print log-likelihood (higher is better)----TO DECIDE NUMBER OF ITERATIONS---not so important for us
 plot(model$log_likelihood, type = "l")
 
-#print summory of topic-coherence
+#print summary of topic-coherence
 summary(model$coherence)
 
 # Get the prevalence of each topic
@@ -131,7 +132,9 @@ library(doParallel)
 library(ggplot2)
 library(scales)
 
-C <- Corpus(VectorSource(corpus$tokens))
+corpus_ita <- read.csv("../csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
+
+C <- Corpus(VectorSource(corpus_ita$tokens))
 tdm <- DocumentTermMatrix(C, control = list(bounds = list(global = c(5, Inf))))
 
 burnin = 1000
