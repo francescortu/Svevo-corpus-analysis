@@ -20,9 +20,9 @@ evaluate_coherence <- function(max_K, corpus, save_results){
                    cpus = 4) # default is all available cpus on the system
   set.seed(12345)
   coher <- c(1:max_K)
-  silhuette <- NULL
-  for(i in c(1:max_K)){
-    model <- TmParallelApply(dtm, FitLdaModel(dtm = dtm, 
+  sil <- NULL
+  for(i in c(2:max_K)){
+    model <- FitLdaModel(dtm = dtm, 
                                               k = i,
                                               iterations = 500, #  recommend at least 500 iterations or more
                                               burnin = 180,
@@ -32,11 +32,15 @@ evaluate_coherence <- function(max_K, corpus, save_results){
                                               calc_likelihood = TRUE,
                                               calc_coherence = TRUE,
                                               calc_r2 = FALSE,
-                                              cpus = 2) )
+                                              cpus = 1) 
     coher[i] <- mean(model$coherence)
+    s <-summary(compute_silhouette_score(model, display_plot = FALSE))
+    sil[i] <- as.numeric(s$si.summary[4])
   }
+  
   if(save_results == TRUE){
     write.csv(coher, "../csv/coherence.csv")
+    write.csv(sil, "../csv/silhouettes_multiple_K.csv")
   }
   
   return(which.max(coher))
