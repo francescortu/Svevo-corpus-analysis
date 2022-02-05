@@ -21,7 +21,7 @@ for (x in corpus$tockens[7]){
 }
 
 library(wordcloud)
-wordcloud(corpus$tokens, scale = c(7, 1), min.freq = 1, colors = rainbow(30))
+wordcloud(corpus$tokens, scale = c(3, 1), min.freq = 100, colors = rainbow(30))
 
 
 model <- readRDS("LDA/LDA_model_ita.rds")
