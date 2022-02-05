@@ -3,14 +3,14 @@
 library(topicmodels)
 library(tm)
 library(textmineR)
-
+library(broom)
 
 ##################  FUNCTIONS ###################
 multiple_K_coherence <- function(max_K, dtm){
   set.seed(12345)
   coher <- c(1:max_K)
   for(i in c(1:max_K)){
-    model <- FitLdaModel(dtm = dtm, 
+    model <- TmParallelApply(dtm, FitLdaModel(dtm = dtm, 
                          k = i,
                          iterations = 500, #  recommend at least 500 iterations or more
                          burnin = 180,
@@ -20,7 +20,7 @@ multiple_K_coherence <- function(max_K, dtm){
                          calc_likelihood = TRUE,
                          calc_coherence = TRUE,
                          calc_r2 = FALSE,
-                         cpus = 4) 
+                         cpus = 2) )
     coher[i] <- mean(model$coherence) 
   }
   return(coher)
@@ -69,7 +69,11 @@ argmax_k <- which.max(coer_on_multiple_K$coherence) # find out which is the valu
 ############### ONE MODEL ANALYSIS ###################################
 #random fit
 set.seed(12345)
+<<<<<<< HEAD
 num_topics <- argmax_k # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
+=======
+num_topics <- 26 # MUST TAKES THE BEST OF THE COMPUTATION ABOVE
+>>>>>>> 991e520146c690ce0f2e68736b36ba3e9bc2c9b2
 #compute LDA with fixing value of K
 model <- FitLdaModel(dtm = dtm, 
                      k = num_topics,
@@ -86,8 +90,13 @@ model <- FitLdaModel(dtm = dtm,
 
 #print log-likelihood (higher is better)----TO DECIDE NUMBER OF ITERATIONS---not so important for us
 plot(model$log_likelihood, type = "l")
+<<<<<<< HEAD
 
 #print summary of topic-coherence
+=======
+augment(model)
+#print summory of topic-coherence
+>>>>>>> 991e520146c690ce0f2e68736b36ba3e9bc2c9b2
 summary(model$coherence)
 
 # Get the prevalence of each topic

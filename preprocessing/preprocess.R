@@ -8,7 +8,7 @@ sw_list_ita <- scan("stopwords_ita.txt", what="", sep="\n")
 sw_list_eng <- scan("stopwords_eng.txt", what="", sep="\n")
 
 # the following function performs all the steps needed to preprocess the whole corpus
-#adjust columns, lower text, remove punctuation and numbers, then remove stop-words
+# adjust columns, lower text, remove punctuation and numbers, then remove stop-words
 
 clean_text <- function(corpus) {
   
