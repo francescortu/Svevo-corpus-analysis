@@ -48,12 +48,11 @@ ggplot(coherence_lda) +
 ```{r plot silhouette}
 silhouette_lda <- read.csv("csv/silhouette.csv")
 
-ggplot(silhouette_lda, aes(x = k, y = silhouette)) +
+ggplot(silhouette_lda, aes(x = X, y = x)) +
   geom_point() +
+  geom_point(aes(x = 5, y = silhouette_lda$x[5]), col = "red") +
   geom_smooth(se = FALSE) +
-  ggtitle("5-fold cross-validation of topic modelling",
-          "(The points represent five different models fit for each candidate number of topics)") +
-  labs(x = "K", y = "silhouette")
+  labs(x = "K", y = "silhouette score")
 
 #ggsave("plots/silhouette.png", width = 20, height = 8, dpi = 150)
 ```
@@ -68,7 +67,7 @@ We choose an intermediate value for k, which ensures a good coherence between to
 while keeping perplexity low.
 
 Build LDA model with a suitable value for k.
-```{r build lda model, eval = FALSE}
+```{r build lda model, eval=FALSE, include=FALSE}
 lda_model_ita <- one_model_analysis(num_topics = 5, corpus_ita, save_results = TRUE)
 ```
 
@@ -119,3 +118,9 @@ sum_topic  %>%
     geom_point(aes(x=date, y=value, colour=key, group = 1),ylab="")
 
 ```
+
+```{r plot topic over time and person for document}
+topic_trend_over_people_for_document(lda_model_ita, corpus_ita)
+topic_trend_over_time_for_document(lda_model_ita, corpus_ita)
+```
+

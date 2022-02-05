@@ -160,7 +160,6 @@ compute_silhouette_score <- function(model, display_plot){
   return(sil) 
 }
 
-
 topic_trend_over_time <- function(corpus, model) {
   
   topic_time <- data.frame(model$theta)
@@ -169,4 +168,41 @@ topic_trend_over_time <- function(corpus, model) {
   #remove NA
   topic_time<-na.omit(topic_time)
   return(topic_time)
+}
+
+topic_trend_over_time_for_document <- function(model, corpus){ 
+  x<-as.data.frame(model$theta)
+  
+  # Hard clustering of documents assign to each document the most likely topic
+  cluster <- NULL
+  for(i in c(1:nrow(x))){
+    cluster[i] <- which.max(x[i,])
+  }
+  topic_time <- data.frame(cluster)
+  topic_time$date <- format(as.Date(corpus$date, format="%d/%m/%Y"),"%Y")
+  
+  #remove NA
+  topic_time <- na.omit(topic_time)
+  xx <- as.data.frame(table(topic_time))
+  p<-ggplot(xx, aes(x = Freq, y = date, fill = cluster)) +
+    geom_bar(stat = "identity", position = "dodge")
+  print(p)
+}
+
+topic_trend_over_people_for_document <- function(model, corpus){ 
+  x<-as.data.frame(model$theta)
+  # Hard clustering of documents assign to each document the most likely topic
+  cluster <- NULL
+  for(i in c(1:nrow(x))){
+    cluster[i] <- which.max(x[i,])
+  }
+  topic_person <- data.frame(cluster)
+  topic_person$pair <- corpus$pair
+  
+  #remove NA
+  topic_person<-na.omit(topic_person)
+  xx <- as.data.frame(table(topic_person))
+  p<-ggplot(xx, aes(x = Freq, y = pair, fill = cluster)) +
+    geom_bar(stat = "identity", position = "dodge")
+  print(p)
 }
