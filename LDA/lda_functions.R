@@ -39,8 +39,8 @@ evaluate_coherence <- function(max_K, corpus, save_results){
   }
   
   if(save_results == TRUE){
-    write.csv(coher, "../csv/coherence.csv")
-    write.csv(sil, "../csv/silhouettes_multiple_K.csv")
+    write.csv(coher, "csv/coherence.csv")
+    write.csv(sil, "csv/silhouette.csv")
   }
   
   return(which.max(coher))
@@ -90,18 +90,7 @@ evaluate_perplexity <- function(corpus, save_results){
   stopCluster(cluster)
   results_df <- as.data.frame(results)
   if(save_results == TRUE){
-    write.csv(results_df, "../csv/perplexity.csv")
-    
-    
-    ggplot(results_df, aes(x = k, y = perplexity)) +
-      geom_point() +
-      geom_smooth(se = FALSE) +
-      ggtitle("5-fold cross-validation of topic modelling",
-              "(The points represent five different models fit for each candidate number of topics)") +
-      labs(x = "K", y = "Perplexity when fitting the trained model to the hold-out set")
-    
-    
-    ggsave("../plots/perplexity.png", width = 20, height = 8, dpi = 150)
+    write.csv(results_df, "csv/perplexity.csv")
   }
   return(results_df)
 }
@@ -131,7 +120,7 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                        cpus = 4) 
   
   model$prevalence <- colSums(model$theta) / sum(model$theta) * 100
-  model$top_terms <- GetTopTerms(phi = model$phi, M = 10)
+  model$top_terms <- GetTopTerms(phi = model$phi, M = 20)
   model$labels <- LabelTopics(assignments = model$theta > 0.05, 
                               dtm = dtm,
                               M = 1)
@@ -144,7 +133,7 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                               }),
                               stringsAsFactors = FALSE)
   if(save_results == TRUE){
-    saveRDS(model, file = "LDA_corpus_topic_model.rds")
+    saveRDS(model, file = "LDA/LDA_corpus_topic_model.rds")
   }
   return(model)
 }
@@ -169,4 +158,15 @@ compute_silhouette_score <- function(model, display_plot){
   }
   
   return(sil) 
+}
+
+
+topic_trend_over_time <- function(corpus, model) {
+  
+  topic_time <- data.frame(model$theta)
+  topic_time$date <- format(as.Date(corpus$date, format="%d/%m/%Y"),"%Y")
+  
+  #remove NA
+  topic_time<-na.omit(topic_time)
+  return(topic_time)
 }
