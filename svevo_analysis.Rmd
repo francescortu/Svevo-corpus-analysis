@@ -287,7 +287,7 @@ ggplot(results_df, aes(x = k, y = perplexity)) +
 
 See topics for k = 20.
 
-```{r}
+```{r, eval = FALSE}
 
 fitted <- LDA(tdm, k = 20, method = "Gibbs",
                     control = list(burnin = burnin, iter = iter, keep = keep) )
@@ -315,3 +315,123 @@ ap_top_terms %>%
   facet_wrap(~ topic, scales = "free") +
   scale_y_reordered()
 ```
+
+
+# Main Topics analysis
+
+An analysis of suitable value for the number of topics k is provided in `LDA.R`.
+We choose an intermediate value for k, which ensures a good coherence between topics
+while keeping perplexity low.
+
+Now, we proceed with the analysis of our corpus, selecting just italian letters (826 documents) 
+and analyzing the main topics found by setting k = 26.
+
+Load italian letters.
+```{r}
+# Load dataset with lemmatized words
+
+corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
+corpus_ita$tokens <- corpus_ita$lemmatized_tokens # make tokens the lemmatized ones
+
+
+```
+
+Build LDA model, with k = 26.
+```{r}
+library(textmineR)
+
+#compute document-term-matrix
+dtm <- CreateDtm(doc_vec = corpus_ita$lemmatized_tokens, # character vector of documents
+                 doc_names = corpus_ita$letter_number, # document names
+                 ngram_window = c(1, 1), # minimum and maximum n-gram length
+                 lower = FALSE, 
+                 remove_punctuation = FALSE, 
+                 stopword_vec = c(),
+                 remove_numbers = FALSE, 
+                 verbose = TRUE,
+                 cpus = 4) # default is all available cpus on the system
+
+
+#random fit
+set.seed(12345)
+num_topics <- 26
+#compute LDA with fixing value of K
+lda_ita <- FitLdaModel(dtm = dtm, 
+                     k = num_topics,
+                     iterations = 800, #  recommend at least 500 iterations or more
+                     burnin = 180,
+                     alpha = 0.1,
+                     beta = 0.05,
+                     optimize_alpha = TRUE,
+                     calc_likelihood = TRUE,
+                     calc_coherence = TRUE,
+                     calc_r2 = TRUE,
+                     cpus = 4) 
+
+saveRDS(lda_ita, file = "LDA/LDA_model_ita.rds")
+```
+
+Analysis of main topics obtained.
+```{r}
+# Get the prevalence of each topic
+# You can make this discrete by applying a threshold, say 0.05, for
+# topics in/out of docuemnts. 
+lda_ita$prevalence <- colSums(lda_ita$theta) / sum(lda_ita$theta) * 100
+
+lda_ita$top_terms <- GetTopTerms(phi = lda_ita$phi, M = 10)
+
+# textmineR has a naive topic labeling tool based on probable bigrams
+lda_ita$labels <- LabelTopics(assignments = lda_ita$theta > 0.05, 
+                            dtm = dtm,
+                            M = 1)
+
+head(lda_ita$labels)
+
+# put them together, with coherence into a summary table
+lda_ita$summary <- data.frame(topic = rownames(lda_ita$phi),
+                            label = lda_ita$labels,
+                            coherence = round(lda_ita$coherence, 3),
+                            prevalence = round(lda_ita$prevalence,3),
+                            top_terms = apply(lda_ita$top_terms, 2, function(x){
+                              paste(x, collapse = ", ")
+                            }),
+                            stringsAsFactors = FALSE)
+
+#print summary table
+lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ][ 1:20 , ]
+
+```
+
+We can see some topics are overlapping, so let's choose a subset of the most distant ones.
+
+
+```{r}
+lda_ita$topic_linguistic_dist <- CalcHellingerDist(lda_ita$phi)
+lda_ita$hclust <- hclust(as.dist(lda_ita$topic_linguistic_dist), "ward.D2")
+lda_ita$hclust$labels <- paste(lda_ita$hclust$labels, lda_ita$labels[ , 1])
+
+plot(lda_ita$hclust)
+
+```
+
+```{r}
+library(Matrix)
+# see distances in a table
+d <- round(lda_ita$topic_linguistic_dist,3)
+
+table(d)
+
+# we need to find the first n topics which are the most distant from all the others
+rowSums(d)
+
+most_distant <- names(sort(rowSums(d), decreasing = TRUE)[1:10])
+most_relevant <- (lda_ita$summary[ order(lda_ita$summary$prevalence, decreasing = TRUE) , ][ 1:10 , ])$topic
+
+chosen_topics <- intersect(most_distant, most_relevant) 
+
+lda_ita$summary[ lda_ita$summary$topic %in% chosen_topics , ]
+
+
+```
+
+
