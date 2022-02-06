@@ -15,46 +15,46 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 
 ```
 
-
+CLassification using positive and negative files
 ```{r}
-library(tidyverse)
-library(tidytext)
-library(textdata)
-
-get_sentiment <- function(doc) {
-  doc$sentiment <- "neutral"
-  for(i in 1:length(doc$word)) {
-    word <- doc$word[i]
-    if (word %in% negative & !(word %in% positive)) 
-      doc$sentiment[i] = "negative"
-    if (word %in% positive & !(word %in% negative))
-      doc$sentiment[i] = "positive"
-  }
-  
-  return(doc)
-}
-
-document_words <- corpus_ita %>%
-  unnest_tokens(word, tokens) %>%
-  count(letter_number, word)
-
-# get sentiments
-negative <- scan("sentiment/negative.txt", what="", sep="\n")
-positive <- scan("sentiment/positive.txt", what="", sep="\n")
-
-# for document 1 check words and look at how they are classified (positive or negative)
-doc <- document_words %>% filter(letter_number == 22) 
-
-doc <- get_sentiment(doc)
-
-doc %>%
-  count(sentiment, word, wt = count) %>%
-  mutate(n = ifelse(sentiment == "negative", -n, n)) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot(aes(word, n, fill = sentiment)) +
-  geom_bar(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  ylab("Contribution to sentiment")
+# library(tidyverse)
+# library(tidytext)
+# library(textdata)
+# 
+# get_sentiment <- function(doc) {
+#   doc$sentiment <- "neutral"
+#   for(i in 1:length(doc$word)) {
+#     word <- doc$word[i]
+#     if (word %in% negative & !(word %in% positive)) 
+#       doc$sentiment[i] = "negative"
+#     if (word %in% positive & !(word %in% negative))
+#       doc$sentiment[i] = "positive"
+#   }
+#   
+#   return(doc)
+# }
+# 
+# document_words <- corpus_ita %>%
+#   unnest_tokens(word, tokens) %>%
+#   count(letter_number, word)
+# 
+# # get sentiments
+# negative <- scan("sentiment/negative.txt", what="", sep="\n")
+# positive <- scan("sentiment/positive.txt", what="", sep="\n")
+# 
+# # for document 1 check words and look at how they are classified (positive or negative)
+# doc <- document_words %>% filter(letter_number == 22) 
+# 
+# doc <- get_sentiment(doc)
+# 
+# doc %>%
+#   count(sentiment, word, wt = count) %>%
+#   mutate(n = ifelse(sentiment == "negative", -n, n)) %>%
+#   mutate(word = reorder(word, n)) %>%
+#   ggplot(aes(word, n, fill = sentiment)) +
+#   geom_bar(stat = "identity") +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+#   ylab("Contribution to sentiment")
 
 ```
 
@@ -66,10 +66,13 @@ library(textdata)
 
 get_sentiment <- function(doc) {
   doc$sentiment <- "neutral"
+  doc$polarity <- 0
   for(i in 1:length(doc$word)) {
-    doc$sentiment[i] = if(sentiment)      doc$sentiment[i] = "positive"
+    if(nrow(sentiment[which(sentiment$word == doc$word[i]),])){
+      doc$sentiment[i] = sentiment[which(sentiment$word == doc$word[i]),][1,]$sentiment
+      doc$polarity[i] = sentiment[which(sentiment$word == doc$word[i]),][1,]$polarity
+    }
   }
-  
   return(doc)
 }
 
@@ -78,7 +81,7 @@ document_words <- corpus_ita %>%
   count(letter_number, word)
 
 # get sentiments
-sentiment <- read.csv("csv/pos_neg_neu.csv",  sep=";", encoding = "UTF-8")
+sentiment <- read.csv("csv/pos_neg_neu.csv",  sep=",", encoding = "UTF-8")
 
 
 # for document 1 check words and look at how they are classified (positive or negative)
