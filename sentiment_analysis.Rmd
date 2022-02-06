@@ -78,9 +78,8 @@ document_words <- corpus_ita %>%
   count(letter_number, word)
 
 # get sentiments
-sentiment <- read.csv("sentiment/pos_neg_neu.csv",  sep=";", encoding = "UTF-8")
-sentiment <- sentiment[,-c(1, 6)]
-colnames(sentiment) <- c("role", "sentiment", "polarity", "word")
+sentiment <- read.csv("csv/pos_neg_neu.csv",  sep=";", encoding = "UTF-8")
+
 
 # for document 1 check words and look at how they are classified (positive or negative)
 doc <- document_words %>% filter(letter_number == 22) 

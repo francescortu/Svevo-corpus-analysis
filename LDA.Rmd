@@ -179,8 +179,4 @@ sum_topic %>%
 
 ```
 
-```{r plot topic over time and person for document}
-topic_trend_over_people_for_document(lda_model_ita, corpus_ita)
-topic_trend_over_time_for_document(lda_model_ita, corpus_ita)
-```
 
