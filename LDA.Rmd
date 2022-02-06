@@ -1,10 +1,18 @@
+---
+title: "Topic modeling - Svevo corpus of italian letters"
+output: html_document
+---
+
 # LDA 
 
+Latent Dirichlet Allocation has been use to model topics in Svevo Corpus of italian letters.
+The main parameter to be tuned in order to use LDA is the number of topics k and to obtain a suitable 
+value of k we started training models on the corpus of italian letters for k in [2,50]. 
+Then, for all the trained models three indexes are compared: perplexity, coherence of topics and silhouette.
+By combining all the previous metrics, a suitable value for k is chosen.
 
-Measure perplexity in our trained LDA.
-(Use perplexity and CV to choose k)
   
-```{r load dataset}
+```{r load dataset, warning = FALSE}
 # load functions for LDA analysis
 source("LDA/lda_functions.R")
 
@@ -13,7 +21,7 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 
 ```
 
-```{r evaluate perplexity and coherence, eval=FALSE}
+```{r evaluate perplexity and coherence, eval=FALSE, warning = FALSE}
 # take a lot of time !!!
 perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
 
@@ -62,12 +70,11 @@ ggplot(silhouette_lda, aes(x = X, y = x)) +
 
 # Main Topics analysis
 
-An analysis of suitable value for the number of topics k is provided in `LDA.R`.
 We choose an intermediate value for k, which ensures a good coherence between topics
-while keeping perplexity low.
+while (keeping perplexity low) ensuring a good silhouette score.
 
 Build LDA model with a suitable value for k.
-```{r build lda model, eval=FALSE, include=FALSE}
+```{r build lda model, eval=FALSE, include=FALSE, warning = FALSE}
 lda_model_ita <- one_model_analysis(num_topics = 5, corpus_ita, save_results = TRUE)
 ```
 
@@ -86,7 +93,13 @@ SummarizeTopics(lda_model_ita)
 ```
 
 
+Now assign suitable labels to topics:
 
+```{r}
+
+lda_model_ita$labels <- c("pensieri", "amore", "letteratura", "vizi", "scrivere")
+
+```
 
 Analyze how topics evolved over time:
 
@@ -98,6 +111,7 @@ Analyze how topics evolved over time:
 # number are those of italian letters in the original corpus
 
 topic_time <- topic_trend_over_time(corpus_ita, lda_model_ita)
+names(topic_time)[1:5] <- lda_model_ita$labels
 
 ```
 
@@ -106,16 +120,62 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-
 sum_topic <- topic_time %>%
   group_by(date) %>%
-  summarise(across(everything(), sum))
+  summarise(across(everything(), sum)) 
+
+count <- (topic_time %>% count(date))$n
+sum_topic$n <- count
 
 sum_topic  %>%
-    gather(key,value, t_1, t_2, t_3, t_4, t_5) %>%
+    gather(key,value, lda_model_ita$labels) %>%
     ggplot() +
-    geom_line(aes(x=date, y=value, colour=key, group = 1),ylab="")+
-    geom_point(aes(x=date, y=value, colour=key, group = 1),ylab="")
+    geom_line(aes(x=date, y=value/n, colour=key, group = 1),ylab="")+
+    geom_point(aes(x=date, y=value/n, colour=key, group = 1),ylab="")
+
+sum_topic %>%
+  gather(key, value, lda_model_ita$labels) %>%
+  ggplot( aes(x = date, y = value/n, fill=key, group = 1),ylab="") +
+  geom_bar(stat = "identity", position = "dodge")
+
+```
+
+```{r}
+#input: one topic
+#output: to who the topic is assigned to
+
+# obtain document-topic probabilities -> lda_ita2$theta
+# number are those of italian letters in the original corpus
+
+topic_people <- topic_trend_over_people(corpus_ita, lda_model_ita)
+names(topic_people)[1:5] <- lda_model_ita$labels
+
+```
+
+```{r plot topic trend over person}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# see to who are the letters sent to
+top_receivers <- corpus_ita %>%
+  group_by(pair) %>%
+  count(pair, sort = TRUE)  %>%
+  filter(n > 4)
+
+sum_topic <- topic_people %>%
+  group_by(pair) %>%
+  summarise(across(everything(), sum)) %>%
+  filter(pair %in% top_receivers$pair) 
+
+sum_topic$n <- for(i in 1:nrow(sum_topic)){return(top_receivers[which(top_receivers$pair == sum_topic$pair[i]),]$n)}
+
+sum_topic <- melt(sum_topic, id = "pair")
+
+sum_topic %>%
+  ggplot() + 
+  geom_bar(aes(x = pair, y = value/n, fill = variable), position = "dodge", stat = "identity")
+
 
 ```
 

@@ -106,7 +106,7 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                    remove_numbers = FALSE, 
                    verbose = TRUE,
                    cpus = 4) # default is all available cpus on the system
-  set.seed(12345)
+  set.seed(123)
   model <- FitLdaModel(dtm = dtm, 
                        k = num_topics,
                        iterations = 800, #  recommend at least 500 iterations or more
@@ -160,6 +160,8 @@ compute_silhouette_score <- function(model, display_plot){
   return(sil) 
 }
 
+
+###E
 topic_trend_over_time <- function(corpus, model) {
   
   topic_time <- data.frame(model$theta)
@@ -169,6 +171,19 @@ topic_trend_over_time <- function(corpus, model) {
   topic_time<-na.omit(topic_time)
   return(topic_time)
 }
+
+topic_trend_over_people <- function(corpus, model) {
+  
+  topic_people <- data.frame(model$theta)
+  # add pair of sender-receiver wrt to letter number
+  topic_people$pair <- corpus$pair
+
+  #remove NA
+  topic_people <- na.omit(topic_people)
+  return(topic_people)
+}
+
+####F
 
 topic_trend_over_time_for_document <- function(model, corpus){ 
   x<-as.data.frame(model$theta)

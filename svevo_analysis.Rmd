@@ -1,5 +1,5 @@
 ---
-title: "ML_final_project"
+title: "Analysis of the corpus: letters of I. Svevo"
 output: html_document
 ---
 
