@@ -109,6 +109,46 @@ for (x in sent) {
 
 df <- read.csv("../csv/cleaned_svevo_dataset_ITA.csv")
 
-df$
+df$sadness
+
+
+library(ggplot2)
+
+ggplot() + 
+  geom_line(data = df, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_line(data = df, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_line(data = df, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_line(data = df, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  labs(color = "Emotions")
+
+
+ggplot() + 
+  geom_line(data = df, aes(x = year, y = positive, colour = "Positive"), group = 1) +
+  geom_line(data = df, aes(x = year, y = negative, colour = "Negative"), group = 1) 
+
+
+
+sad <- sum(df$sadness)
+
+joy <- sum(df$joy)
+
+fear <- sum(df$fear)
+
+anger <- sum(df$anger)
+
+
+
+
+ggplot(data, aes(x="", y=value, fill=group)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0)+
+  labs(fill = "Emotions")+
+  theme_void()
+
+
 
 
