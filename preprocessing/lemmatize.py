@@ -25,12 +25,14 @@ def lemmatize():
       if sett["mainLanguage"][x] == "GER" :
           sett["doc"][x] = nlp_de(sett["tokens"][x])
 
-
+  pos = ['PROPN', 'NOUN', 'VERB', 'ADJ']
+  
   for i in range(sett.shape[0]):
-      sett["lemmatized_tokens"][i] = " ".join(token.lemma_ for token in sett["doc"][i])
+      sett["lemmatized_tokens"][i] = " ".join(token.lemma_  for token in sett["doc"][i] if(token.pos_ in pos))
 
   sett.to_csv("../csv/cleaned_svevo_dataset.csv")
 
 
 if __name__ == "__main__":
     lemmatize()
+  
