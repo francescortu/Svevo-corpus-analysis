@@ -105,3 +105,10 @@ for (x in sent) {
 }
 
 
+### Some plot on sentiments
+
+df <- read.csv("../csv/cleaned_svevo_dataset_ITA.csv")
+
+df$
+
+
