@@ -97,7 +97,7 @@ evaluate_perplexity <- function(corpus, save_results){
 
 #return LDA model
 one_model_analysis <- function(num_topics, corpus, save_results){
-  dtm <- CreateDtm(doc_vec = corpus$lemmatized_tokens, # character vector of documents
+  dtm <- CreateDtm(doc_vec = corpus$tokens, # character vector of documents
                    doc_names = corpus$letter_number, # document names
                    ngram_window = c(1, 1), # minimum and maximum n-gram length
                    lower = FALSE, 
@@ -106,7 +106,7 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                    remove_numbers = FALSE, 
                    verbose = TRUE,
                    cpus = 4) # default is all available cpus on the system
-  set.seed(125)
+  set.seed(1254)
   model <- FitLdaModel(dtm = dtm, 
                        k = num_topics,
                        iterations = 800, #  recommend at least 500 iterations or more
@@ -161,7 +161,6 @@ compute_silhouette_score <- function(model, display_plot){
 }
 
 
-###E
 topic_trend_over_time <- function(corpus, model) {
   
   topic_time <- data.frame(model$theta)

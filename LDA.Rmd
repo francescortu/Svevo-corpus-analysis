@@ -15,11 +15,10 @@ By combining all the previous metrics, a suitable value for k is chosen.
 ```{r load dataset, warning = FALSE}
 # load functions for LDA analysis
 source("LDA/lda_functions.R")
-
+library(dplyr)
+library(tidytext)
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
-
-# further cleaning of dataset
 
 
 ```
@@ -100,7 +99,7 @@ Now assign suitable labels to topics:
 
 ```{r}
 
-lda_model_ita$labels <- c("pensieri", "amore", "letteratura", "vizi", "scrivere")
+lda_model_ita$labels <- c("salute", "sentimenti", "libro", "pensieri", "viaggio" )
 
 ```
 
