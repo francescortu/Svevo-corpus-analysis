@@ -141,13 +141,34 @@ fear <- sum(df$fear)
 anger <- sum(df$anger)
 
 
+tot <- sum(sad, joy, fear, anger)
 
+
+data <- data.frame(
+  group=c("Sadness", "Joy", "Fear", "Anger"),
+  value=c(sad/tot*100,joy/tot*100,fear/tot*100,anger/tot*100)
+)
+
+length(data$value)
+for (i in 1:length(data$value)) {
+  data$value[i] = round(data$value[i], digits = 1)
+}
+
+mycols <- c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF")
+
+data <- data %>%
+  arrange(desc(group)) %>%
+  mutate(lab.ypos = cumsum(value) - 0.5*value)
+data
 
 ggplot(data, aes(x="", y=value, fill=group)) +
   geom_bar(stat="identity", width=1, color="white") +
   coord_polar("y", start=0)+
   labs(fill = "Emotions")+
+  geom_text(aes(y = lab.ypos, label = value), color = "white", size = 9)+
+  scale_fill_manual(values = mycols) +
   theme_void()
+
 
 
 
