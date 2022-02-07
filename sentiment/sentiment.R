@@ -109,6 +109,67 @@ for (x in sent) {
 
 df <- read.csv("../csv/cleaned_svevo_dataset_ITA.csv")
 
-df$
+df$sadness
+
+
+library(ggplot2)
+
+ggplot() + 
+  geom_line(data = df, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_line(data = df, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_line(data = df, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_line(data = df, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  geom_smooth(data = df, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  labs(color = "Emotions")
+
+
+ggplot() + 
+  geom_line(data = df, aes(x = year, y = positive, colour = "Positive"), group = 1) +
+  geom_line(data = df, aes(x = year, y = negative, colour = "Negative"), group = 1) 
+
+
+
+sad <- sum(df$sadness)
+
+joy <- sum(df$joy)
+
+fear <- sum(df$fear)
+
+anger <- sum(df$anger)
+
+
+tot <- sum(sad, joy, fear, anger)
+
+
+data <- data.frame(
+  group=c("Sadness", "Joy", "Fear", "Anger"),
+  value=c(sad/tot*100,joy/tot*100,fear/tot*100,anger/tot*100)
+)
+
+length(data$value)
+for (i in 1:length(data$value)) {
+  data$value[i] = round(data$value[i], digits = 1)
+}
+
+mycols <- c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF")
+
+data <- data %>%
+  arrange(desc(group)) %>%
+  mutate(lab.ypos = cumsum(value) - 0.5*value)
+data
+
+ggplot(data, aes(x="", y=value, fill=group)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0)+
+  labs(fill = "Emotions")+
+  geom_text(aes(y = lab.ypos, label = value), color = "white", size = 9)+
+  scale_fill_manual(values = mycols) +
+  theme_void()
+
+
+
 
 
