@@ -19,6 +19,9 @@ source("LDA/lda_functions.R")
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
 
+# further cleaning of dataset
+
+
 ```
 
 ```{r evaluate perplexity and coherence, eval=FALSE, warning = FALSE}
@@ -127,8 +130,9 @@ sum_topic <- topic_time %>%
 count <- (topic_time %>% count(date))$n
 sum_topic$n <- count
 
-sum_topic  %>%
-    gather(key,value, lda_model_ita$labels) %>%
+
+sum_topic %>%
+    gather(key, value, lda_model_ita$labels) %>%
     ggplot() +
     geom_line(aes(x=date, y=value/n, colour=key, group = 1),ylab="")+
     geom_point(aes(x=date, y=value/n, colour=key, group = 1),ylab="")

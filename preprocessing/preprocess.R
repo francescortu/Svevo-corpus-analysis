@@ -60,9 +60,10 @@ corpus <- clean_text(corpus)
 fwrite(corpus, paste0("../csv/cleaned_svevo_dataset.csv"),col.names = TRUE)
 
 # call python script to lemmatize tokens wrt the language used in each letter
+# the script lemmatize words and save the dataset again
 system('python lemmatize.py')
 
-####
+###### save italian dataset
 corpus <- read.csv("../csv/cleaned_svevo_dataset.csv", sep=",", encoding = "UTF-8")
 
 corpus_ita <- corpus[which(corpus$languages == "ITA"),]
