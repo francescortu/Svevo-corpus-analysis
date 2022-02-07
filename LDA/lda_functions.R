@@ -1,3 +1,6 @@
+# This file contains functions which are used to perform and
+# simplify topic modeling on the given corpus using LDA
+
 library(textmineR)
 library(cluster)
 library(factoextra)

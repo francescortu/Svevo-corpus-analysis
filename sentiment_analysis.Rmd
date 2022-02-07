@@ -7,8 +7,8 @@ output: html_document
 Sentiment analysis of italian letter in Svevo Corpus.
 
 ```{r load dataset, warning = FALSE}
-# load functions for LDA analysis
-# source("LDA/lda_functions.R")
+# load functions for sentiment analysis
+source("sentiment/sentiment_functions.R")
 
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
@@ -21,43 +21,87 @@ library(tidyverse)
 library(tidytext)
 library(textdata)
 
-get_sentiment <- function(doc, sentiment_df) {
-  doc$sentiments <- "neutral"
-  doc$polarity <- 0
-  for(i in 1:length(doc$word)) {
-    if(nrow(sentiment_df[which(sentiment_df$word == doc$word[i]),])){
-      doc$sentiments[i] = sentiment_df[which(sentiment_df$word == doc$word[i]),][1,]$sentiment
-      doc$polarity[i] = sentiment_df[which(sentiment_df$word == doc$word[i]),][1,]$polarity
-    }
-  }
-  return(doc)
-}
-
 document_words <- corpus_ita %>%
   unnest_tokens(word, tokens) %>%
   count(letter_number, word)
 
-# get sentiments
-sentiment_df <- read.csv("csv/pos_neg_neu.csv",  sep=",", encoding = "UTF-8")
+```
+
+Summarise sentiments for all documents in our corpus:
+```{r, warning = FALSE}
+# assign positive-negative-neutral scores to all the documents
+sentiment_docs <- get_sentiment(document_words, corpus_ita) #takes a little bit of time 
+```
 
 
-# for one document check words and look at how they are classified (positive or negative)
-doc <- document_words %>% filter(letter_number == 22) 
+Analyze how sentiments evolved over time:
 
-doc <- get_sentiment(doc, sentiment_df)
-doc$sentiments <- as.factor(doc$sentiments)
-pos_neg <- doc[,4:5] %>% 
-  group_by(sentiments)
-  
-res <- doc %>% 
-  group_by(sentiments) %>% 
-  summarise(polarity = sum(polarity)) %>%
-  mutate(polarity = (polarity/sum(polarity)) * 100)
+```{r plot sentiment trend over time}
+#input: set of sentiments {positive, negative, neutral}
+#output: their trend over time
 
-ggplot(res, aes(x="", y=polarity, fill=sentiments)) +
-  geom_bar(stat="identity", width=1, color="white") +
-  coord_polar("y", start=0)+
-  theme_void() 
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+sentiment_labels <- c("neutral", "positive", "negative")
+
+sum_sentiment <- sentiment_docs %>%
+  group_by(date) %>%
+  summarise(across(sentiment_labels, sum))
+
+sum_sentiment <- sum_sentiment  %>% mutate(n = negative/(negative+positive+neutral))
+sum_sentiment <- sum_sentiment  %>% mutate(p = positive/(negative+positive+neutral))
+sum_sentiment <- sum_sentiment  %>% mutate(ne = neutral/(negative+positive+neutral))
+
+sum_sentiment$negative <- sum_sentiment$n
+sum_sentiment$positive <- sum_sentiment$p
+sum_sentiment$neutral <- sum_sentiment$ne
+
+sum_sentiment[, -((ncol(sum_sentiment) - 2):ncol(sum_sentiment))]
 
 
+
+sum_sentiment %>%
+   # gather(key, value, sentiment_labels) %>%
+    ggplot() +
+    geom_line(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="")+
+    geom_point(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="") +
+    geom_line(aes(x=date, y=negative, colour="negative", group = 1),ylab="")+
+    geom_point(aes(x=date, y=negative, colour="negative", group = 1),ylab="")+
+    geom_line(aes(x=date, y=positive, colour="positive", group = 1),ylab="")+
+    geom_point(aes(x=date, y=positive, colour="positive", group = 1),ylab="") +
+    scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
+    labs( y = "") 
+
+sum_sentiment %>%
+  gather(key, value, sentiment_labels) %>%
+  ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
+  geom_bar(stat = "identity", position = "dodge") 
+
+```
+
+```{r plot sentiment trend over people}
+#input: set of sentiments {positive, negative, neutral}
+#output: their trend over people
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+sentiment_labels <- c("neutral", "positive", "negative")
+
+sum_sentiment <- sentiment_docs[,-1] %>%
+  group_by(pair) %>%
+  mutate(count = n()) %>%
+  filter(count > 2) %>%
+  group_by(pair, count) %>%
+  summarise(across(sentiment_labels, sum)) 
+
+
+sum_sentiment <- melt(sum_sentiment, id = c("pair", "count"))
+
+sum_sentiment %>%
+  ggplot() + 
+  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")
 ```
