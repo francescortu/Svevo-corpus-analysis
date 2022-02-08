@@ -1,5 +1,7 @@
 # This file contains functions which are used to perform and
 # simplify sentimentiment analysis on our corpus
+library(tidyr)
+library(dplyr)
 
 get_sentiment <- function(docs, corpus) {
   sentiment_df <- read.csv("csv/pos_neg_neu.csv",  sep=",", encoding = "UTF-8") # read pre-classified set of words
@@ -16,8 +18,7 @@ get_sentiment <- function(docs, corpus) {
   
   docs <- docs %>% 
     group_by(letter_number, sentiments) %>% 
-    summarise(polarity = sum(polarity)) #%>%
-    #mutate(polarity = (polarity/sum(polarity)) * 100)
+    summarise(polarity = sum(polarity)) 
   
   docs <- dcast(docs, letter_number ~ sentiments)
   docs <- replace(docs,is.na(docs),0)

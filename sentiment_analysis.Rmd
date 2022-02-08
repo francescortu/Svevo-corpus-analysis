@@ -13,10 +13,6 @@ source("sentiment/sentiment_functions.R")
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
 
-```
-
-
-```{r}
 library(tidyverse)
 library(tidytext)
 library(textdata)
@@ -31,6 +27,7 @@ Summarise sentiments for all documents in our corpus:
 ```{r, warning = FALSE}
 # assign positive-negative-neutral scores to all the documents
 sentiment_docs <- get_sentiment(document_words, corpus_ita) #takes a little bit of time 
+
 ```
 
 
@@ -46,23 +43,22 @@ library(tidyr)
 
 sentiment_labels <- c("neutral", "positive", "negative")
 
-sum_sentiment <- sentiment_docs %>%
+sentiment_time <- sentiment_docs %>%
   group_by(date) %>%
   summarise(across(sentiment_labels, sum))
 
-sum_sentiment <- sum_sentiment  %>% mutate(n = negative/(negative+positive+neutral))
-sum_sentiment <- sum_sentiment  %>% mutate(p = positive/(negative+positive+neutral))
-sum_sentiment <- sum_sentiment  %>% mutate(ne = neutral/(negative+positive+neutral))
+sentiment_time <- sentiment_time  %>% mutate(n = negative/(negative+positive+neutral), p = positive/(negative+positive+neutral),
+                                             ne = neutral/(negative+positive+neutral))
 
-sum_sentiment$negative <- sum_sentiment$n
-sum_sentiment$positive <- sum_sentiment$p
-sum_sentiment$neutral <- sum_sentiment$ne
+sentiment_time$negative <- sentiment_time$n
+sentiment_time$positive <- sentiment_time$p
+sentiment_time$neutral <- sentiment_time$ne
 
-sum_sentiment[, -((ncol(sum_sentiment) - 2):ncol(sum_sentiment))]
-
+sentiment_time[, -((ncol(sentiment_time) - 2):ncol(sentiment_time))]
 
 
-sum_sentiment %>%
+
+sentiment_time %>%
    # gather(key, value, sentiment_labels) %>%
     ggplot() +
     geom_line(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="")+
@@ -74,7 +70,7 @@ sum_sentiment %>%
     scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
     labs( y = "") 
 
-sum_sentiment %>%
+sentiment_time %>%
   gather(key, value, sentiment_labels) %>%
   ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
   geom_bar(stat = "identity", position = "dodge") 
@@ -91,17 +87,27 @@ library(tidyr)
 
 sentiment_labels <- c("neutral", "positive", "negative")
 
-sum_sentiment <- sentiment_docs[,-1] %>%
+sentiment_people <- sentiment_docs[,-1] %>%
   group_by(pair) %>%
   mutate(count = n()) %>%
   filter(count > 2) %>%
   group_by(pair, count) %>%
   summarise(across(sentiment_labels, sum)) 
 
+sentiment_people <- sentiment_people  %>% mutate(n = 100*negative/(negative+positive+neutral),
+                                                 p = 100*positive/(negative+positive+neutral),
+                                                  ne = 100*neutral/(negative+positive+neutral))
 
-sum_sentiment <- melt(sum_sentiment, id = c("pair", "count"))
+sentiment_people$negative <- sentiment_people$n
+sentiment_people$positive <- sentiment_people$p
+sentiment_people$neutral <- sentiment_people$ne
+sentiment_people <- sentiment_people[, -((ncol(sentiment_people) - 2):ncol(sentiment_people))]
 
-sum_sentiment %>%
+
+sentiment_people <- melt(sentiment_people, id = c("pair", "count"))
+
+sentiment_people %>%
   ggplot() + 
-  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")
+  geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
+
 ```

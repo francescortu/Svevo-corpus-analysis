@@ -121,6 +121,7 @@ names(topic_time)[1:5] <- lda_model_ita$labels
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+library(reshape2)
 
 sum_topic <- topic_time %>%
   group_by(date) %>%
