@@ -10,6 +10,7 @@ Sentiment analysis of italian letter in Svevo Corpus.
 # load functions for sentiment analysis
 source("sentiment/sentiment_functions.R")
 
+
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
 
@@ -111,3 +112,27 @@ sentiment_people %>%
   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
 
 ```
+
+```{r plot emotions trend over time}
+dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";") 
+
+dfEmotionTime <- dfEmotion
+dfEmotionTime <- get_emotions_time(dfEmotionTime)
+
+ggplot() + 
+  geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_line(data = dfEmotionTIme, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  labs(color = "Emotions")
+  
+
+```
+
+```{r}
+dfEmotionPair <- read.csv("csv/sentiment_pair.csv")
+
+dfEmotionPair <- get_emotions_pair()
+
+```
+
