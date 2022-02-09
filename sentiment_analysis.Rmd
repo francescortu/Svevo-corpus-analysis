@@ -115,39 +115,23 @@ sentiment_people %>%
 
 
 ```{r plot sentiment trend over topics}
-#input: set of sentiments {positive, negative, neutral}
-#output: their trend over people
+#input: one topic 
+#output: a value for each sentiment in the set = {positive, negative, neutral}
 
-# library(dplyr)
-# library(ggplot2)
-# library(tidyr)
-# 
-# lda_model_ita <- readRDS("LDA/LDA_corpus_topic_model.rds")
-# 
-# sentiment_labels <- c("neutral", "positive", "negative")
-# 
-# sentiment_people <- sentiment_docs[,-1] %>%
-#   group_by(pair) %>%
-#   mutate(count = n()) %>%
-#   filter(count > 2) %>%
-#   group_by(pair, count) %>%
-#   summarise(across(sentiment_labels, sum)) 
-# 
-# sentiment_people <- sentiment_people  %>% mutate(n = 100*negative/(negative+positive+neutral),
-#                                                  p = 100*positive/(negative+positive+neutral),
-#                                                   ne = 100*neutral/(negative+positive+neutral))
-# 
-# sentiment_people$negative <- sentiment_people$n
-# sentiment_people$positive <- sentiment_people$p
-# sentiment_people$neutral <- sentiment_people$ne
-# sentiment_people <- sentiment_people[, -((ncol(sentiment_people) - 2):ncol(sentiment_people))]
-# 
-# 
-# sentiment_people <- melt(sentiment_people, id = c("pair", "count"))
-# 
-# sentiment_people %>%
-#   ggplot() + 
-#   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# get sentiments associated to each topic
+sentiment_topic <- get_sentiment_topic()
+
+#plot
+sentiment_topic <- melt(sentiment_topic, id = c("topic"))
+
+sentiment_topic %>%
+  ggplot() +
+  geom_bar(aes(x = topic, y = value, fill = variable), position = "dodge", stat = "identity")
+
 
 ```
 
