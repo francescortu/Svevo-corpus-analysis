@@ -10,6 +10,7 @@ Sentiment analysis of italian letter in Svevo Corpus.
 # load functions for sentiment analysis
 source("sentiment/sentiment_functions.R")
 
+
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
 
@@ -112,50 +113,6 @@ sentiment_people %>%
 
 ```
 
-```{r plot sentiment trend over time}
-#input: set of sentiments {positive, negative, neutral}
-#output: their trend over time
-
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-
-sentiment_labels <- c("neutral", "positive", "negative")
-
-sentiment_time <- sentiment_docs %>%
-  group_by(date) %>%
-  summarise(across(sentiment_labels, sum))
-
-sentiment_time <- sentiment_time  %>% mutate(n = negative/(negative+positive+neutral), 
-                                             p = positive/(negative+positive+neutral),
-                                             ne = neutral/(negative+positive+neutral))
-
-sentiment_time$negative <- sentiment_time$n
-sentiment_time$positive <- sentiment_time$p
-sentiment_time$neutral <- sentiment_time$ne
-
-sentiment_time[, -((ncol(sentiment_time) - 2):ncol(sentiment_time))]
-
-
-
-sentiment_time %>%
-   # gather(key, value, sentiment_labels) %>%
-    ggplot() +
-    geom_line(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="")+
-    geom_point(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="") +
-    geom_line(aes(x=date, y=negative, colour="negative", group = 1),ylab="")+
-    geom_point(aes(x=date, y=negative, colour="negative", group = 1),ylab="")+
-    geom_line(aes(x=date, y=positive, colour="positive", group = 1),ylab="")+
-    geom_point(aes(x=date, y=positive, colour="positive", group = 1),ylab="") +
-    scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
-    labs( y = "") 
-
-sentiment_time %>%
-  gather(key, value, sentiment_labels) %>%
-  ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
-  geom_bar(stat = "identity", position = "dodge") 
-
-```
 
 ```{r plot sentiment trend over topics}
 #input: set of sentiments {positive, negative, neutral}
@@ -193,3 +150,27 @@ sentiment_time %>%
 #   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
 
 ```
+
+```{r plot emotions trend over time}
+dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";") 
+
+dfEmotionTime <- dfEmotion
+dfEmotionTime <- get_emotions_time(dfEmotionTime)
+
+ggplot() + 
+  geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_line(data = dfEmotionTIme, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  labs(color = "Emotions")
+  
+
+```
+
+```{r}
+dfEmotionPair <- read.csv("csv/sentiment_pair.csv")
+
+dfEmotionPair <- get_emotions_pair()
+
+```
+

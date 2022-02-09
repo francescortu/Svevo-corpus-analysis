@@ -2,6 +2,8 @@
 # simplify sentimentiment analysis on our corpus
 library(tidyr)
 library(dplyr)
+library(lubridate)
+
 
 get_sentiment <- function(docs, corpus) {
   sentiment_df <- read.csv("csv/pos_neg_neu.csv",  sep=",", encoding = "UTF-8") # read pre-classified set of words
@@ -27,3 +29,41 @@ get_sentiment <- function(docs, corpus) {
   
   return(docs)
 }
+
+
+get_emotions_time <- function(dfEmotion){
+  
+  countYear <- dfEmotion %>% 
+    group_by(year) %>%
+    count()
+  
+  dfEmotion <- dfEmotion %>% 
+    group_by(year) %>%
+    summarise(across(everything(), sum))
+  
+  dfEmotion$countYear <- countYear$n
+  dfEmotion[,3:8] <- round(dfEmotion[,3:8]/dfEmotion$countYear, digits = 1)
+  
+  return(dfEmotion)
+}
+
+
+get_emotions_pair <- function(dfEmotion){
+  
+  countYear <- dfEmotion %>% 
+    group_by(year) %>%
+    count()
+  
+  dfEmotion <- dfEmotion %>% 
+    group_by(year) %>%
+    summarise(across(everything(), sum))
+  
+  dfEmotion$countYear <- countYear$n
+  dfEmotion[,3:8] <- round(dfEmotion[,3:8]/dfEmotion$countYear, digits = 1)
+  
+  return(dfEmotion)
+}
+
+
+
+
