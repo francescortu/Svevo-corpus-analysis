@@ -29,9 +29,11 @@ perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
 
 coherence_lda <- evaluate_coherence(max_K = 20, corpus_ita, save_results = FALSE)
 
+
 ```
 
 ```{r plot perplexity and coherence}
+library(ggplot2)
 perplexity_lda <- read.csv("csv/perplexity.csv")
 
 ggplot(perplexity_lda, aes(x = k, y = perplexity)) +
@@ -41,18 +43,18 @@ ggplot(perplexity_lda, aes(x = k, y = perplexity)) +
           "(The points represent five different models fit for each candidate number of topics)") +
   labs(x = "K", y = "Perplexity when fitting the trained model to the hold-out set")
 
-#ggsave("plots/perplexity.png", width = 20, height = 8, dpi = 150)
+ggsave("plots/perplexity.png", width = 20, height = 8, dpi = 150)
 
 coherence_lda <- read.csv("csv/coherence.csv")
 colnames(coherence_lda) <- c("k", "coherence")
 
-ggplot(coherence_lda) +
+ggplot(coherence_lda[2:20,]) +
   geom_point(aes(x = 5, y = coherence_lda$coherence[5]), col = "red", size = 3) +
   geom_line(aes(x = k, y = coherence), col = "violet") + 
   xlab("K") + 
   ylab("Coherence")
 
-#ggsave("plots/coherence.png", width = 20, height = 8, dpi = 150)
+ggsave("plots/coherence.png", width = 20, height = 8, dpi = 150)
 
 ```
 ```{r plot silhouette}
@@ -64,7 +66,7 @@ ggplot(silhouette_lda, aes(x = X, y = x)) +
   geom_smooth(se = FALSE) +
   labs(x = "K", y = "silhouette score")
 
-#ggsave("plots/silhouette.png", width = 20, height = 8, dpi = 150)
+ggsave("plots/silhouette.png", width = 20, height = 8, dpi = 150)
 ```
 
 
