@@ -99,7 +99,7 @@ Now assign suitable labels to topics:
 
 ```{r}
 
-lda_model_ita$labels <- c("salute", "sentimenti", "libro", "pensieri", "viaggio" )
+lda_model_ita$labels <- c("salute", "famiglia", "libro", "pensieri", "viaggio" )
 
 ```
 
