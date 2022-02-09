@@ -113,6 +113,8 @@ sentiment_people %>%
 
 ```
 
+####################### ######################################## TO-MERGE #################################################################
+##########################################################################################################################################
 ```{r plot emotions trend over time}
 #TO-MERGE
 dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";", encoding = "UTF-8") 
@@ -131,7 +133,7 @@ ggsave("plots/emotionOnTime.png", width=16, height=9, dpi=200)
 ```
 
 ```{r}
-#TO-MERGE
+
 dfEmotionPair <- read.csv("csv/sentiment_pair.csv", sep = ";", encoding = "UTF-8")
 
 dfEmotionPair <- get_emotions_pair(dfEmotionPair)
@@ -155,5 +157,7 @@ emotion_people %>%
   labs(variable = "Emotions")
 
 ggsave("plots/emotionOnPeople.png", width=16, height=9, dpi=200)
-```
 
+```
+#################################################################################################################################
+###############################################################################################################################
