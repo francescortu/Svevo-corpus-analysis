@@ -24,7 +24,9 @@ evaluate_coherence <- function(max_K, corpus, save_results){
   set.seed(12345)
   coher <- c(1:max_K)
   sil <- NULL
+  pb <- txtProgressBar(0, max_K, style = 3)
   for(i in c(2:max_K)){
+    setTxtProgressBar(pb, i)
     model <- FitLdaModel(dtm = dtm, 
                                               k = i,
                                               iterations = 500, #  recommend at least 500 iterations or more
@@ -40,6 +42,8 @@ evaluate_coherence <- function(max_K, corpus, save_results){
     s <-summary(compute_silhouette_score(model, display_plot = FALSE))
     sil[i] <- as.numeric(s$si.summary[4])
   }
+  close(pb)
+  
   
   if(save_results == TRUE){
     write.csv(coher, "csv/coherence.csv")
@@ -78,7 +82,9 @@ evaluate_perplexity <- function(corpus, save_results){
       k <- candidate_k[j]
       results_1k <- matrix(0, nrow = folds, ncol = 2)
       colnames(results_1k) <- c("k", "perplexity")
+      pb <- txtProgressBar(1, folds, style = 3)
       for(i in 1:folds){
+        setTxtProgressBar(pb, i)
         train_set <- full_data[splitfolds != i , ]
         valid_set <- full_data[splitfolds == i, ]
         
@@ -86,6 +92,7 @@ evaluate_perplexity <- function(corpus, save_results){
                       control = list(burnin = burnin, iter = iter, keep = keep) )
         results_1k[i,] <- c(k, perplexity(fitted, newdata = valid_set))
       }
+      close(pb)
       return(results_1k)
     }
   })

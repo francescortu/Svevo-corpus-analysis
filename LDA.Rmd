@@ -27,7 +27,7 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 # take a lot of time !!!
 perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
 
-coherence_lda <- evaluate_coherence(kmax = 50, corpus_ita, save_results = TRUE)
+coherence_lda <- evaluate_coherence(max_K = 20, corpus_ita, save_results = FALSE)
 
 ```
 
