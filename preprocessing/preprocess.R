@@ -3,6 +3,10 @@ library(dplyr)
 library(tidytext)
 library(textstem)
 library(data.table)
+library(rstudioapi)
+
+setwd(getSourceEditorContext()$path)  
+
 
 sw_list_ita <- scan("stopwords_ita.txt", what="", sep="\n")
 sw_list_eng <- scan("stopwords_eng.txt", what="", sep="\n")
@@ -86,7 +90,7 @@ system('python lemmatize.py')
 ###### save italian dataset
 corpus <- read.csv("../csv/cleaned_svevo_dataset.csv", sep=",", encoding = "UTF-8")
 
-corpus_ita <- corpus[which(corpus$languages == "ITA"),]
+corpus_ita <- corpus[which(corpus$mainLanguage == "ITA"),]
 most_frequent <- add_most_frequent(corpus_ita)
 
 for(i in c(1:nrow(corpus_ita))){
