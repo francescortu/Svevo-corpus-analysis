@@ -114,6 +114,7 @@ sentiment_people %>%
 ```
 
 ```{r plot emotions trend over time}
+#TO-MERGE
 dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";", encoding = "UTF-8") 
 dfEmotion
 dfEmotionTime <- dfEmotion
@@ -130,17 +131,10 @@ ggsave("plots/emotionOnTime.png", width=16, height=9, dpi=200)
 ```
 
 ```{r}
+#TO-MERGE
 dfEmotionPair <- read.csv("csv/sentiment_pair.csv", sep = ";", encoding = "UTF-8")
 
 dfEmotionPair <- get_emotions_pair(dfEmotionPair)
-
-#ggplot() + 
- # geom_bar(data = dfEmotionPair, aes(x = pair, y = sadness, colour = "Sadness", fill = sadness), position = "fill", stat = "identity") +
-  #geom_bar(data = dfEmotionPair, aes(x = pair, y = joy, colour = "Joy", fill = joy), position = "fill", stat = "identity") +
- # geom_bar(data = dfEmotionPair, aes(x = pair, y = fear, colour = "Fear", fill = fear), position = "fill", stat = "identity") +
-  #geom_bar(data = dfEmotionPair, aes(x = pair, y = anger, colour = "Anger", fill = anger), position = "fill", stat = "identity") +
-  #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-  #labs(color = "Emotions")
   
 dfEmotionPairTmp <- dfEmotionPair
 dfEmotionPairTmp$countPair <- NULL
