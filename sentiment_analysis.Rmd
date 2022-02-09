@@ -114,8 +114,8 @@ sentiment_people %>%
 ```
 
 ```{r plot emotions trend over time}
-dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";") 
-
+dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";", encoding = "UTF-8") 
+dfEmotion
 dfEmotionTime <- dfEmotion
 dfEmotionTime <- get_emotions_time(dfEmotionTime)
 
@@ -123,16 +123,43 @@ ggplot() +
   geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
   geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
   geom_line(data = dfEmotionTime, aes(x = year, y = fear, colour = "Fear"), group = 1) +
-  geom_line(data = dfEmotionTIme, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = anger, colour = "Anger"), group = 1) +
   labs(color = "Emotions")
   
-
+ggsave("plots/emotionOnTime.png", width=16, height=9, dpi=200)
 ```
 
 ```{r}
-dfEmotionPair <- read.csv("csv/sentiment_pair.csv")
+dfEmotionPair <- read.csv("csv/sentiment_pair.csv", sep = ";", encoding = "UTF-8")
 
-dfEmotionPair <- get_emotions_pair()
+dfEmotionPair <- get_emotions_pair(dfEmotionPair)
 
+#ggplot() + 
+ # geom_bar(data = dfEmotionPair, aes(x = pair, y = sadness, colour = "Sadness", fill = sadness), position = "fill", stat = "identity") +
+  #geom_bar(data = dfEmotionPair, aes(x = pair, y = joy, colour = "Joy", fill = joy), position = "fill", stat = "identity") +
+ # geom_bar(data = dfEmotionPair, aes(x = pair, y = fear, colour = "Fear", fill = fear), position = "fill", stat = "identity") +
+  #geom_bar(data = dfEmotionPair, aes(x = pair, y = anger, colour = "Anger", fill = anger), position = "fill", stat = "identity") +
+  #theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  #labs(color = "Emotions")
+  
+dfEmotionPairTmp <- dfEmotionPair
+dfEmotionPairTmp$countPair <- NULL
+dfEmotionPairTmp$positive <- NULL
+dfEmotionPairTmp$negative <- NULL
+
+emotion_people <- melt(dfEmotionPairTmp, id = c("pair"))
+
+emotion_people$Emotions <- emotion_people$variable
+emotion_people$variable <- NULL
+emotion_people$Person <- emotion_people$pair
+emotion_people$pair <- NULL
+
+emotion_people %>%
+  ggplot() +
+  geom_bar(aes(x = Person, y = value, fill = Emotions), position = "fill", stat = "identity") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  labs(variable = "Emotions")
+
+ggsave("plots/emotionOnPeople.png", width=16, height=9, dpi=200)
 ```
 

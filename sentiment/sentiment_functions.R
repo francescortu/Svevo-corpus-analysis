@@ -42,7 +42,7 @@ get_emotions_time <- function(dfEmotion){
     summarise(across(everything(), sum))
   
   dfEmotion$countYear <- countYear$n
-  dfEmotion[,3:8] <- round(dfEmotion[,3:8]/dfEmotion$countYear, digits = 1)
+  dfEmotion[,2:7] <- round(dfEmotion[,2:7]/dfEmotion$countYear, digits = 1)
   
   return(dfEmotion)
 }
@@ -50,16 +50,16 @@ get_emotions_time <- function(dfEmotion){
 
 get_emotions_pair <- function(dfEmotion){
   
-  countYear <- dfEmotion %>% 
-    group_by(year) %>%
+  countPair <- dfEmotion %>% 
+    group_by(pair) %>%
     count()
   
   dfEmotion <- dfEmotion %>% 
-    group_by(year) %>%
+    group_by(pair) %>%
     summarise(across(everything(), sum))
   
-  dfEmotion$countYear <- countYear$n
-  dfEmotion[,3:8] <- round(dfEmotion[,3:8]/dfEmotion$countYear, digits = 1)
+  dfEmotion$countPair <- countPair$n
+  dfEmotion[,2:7] <- round(dfEmotion[,2:7]/dfEmotion$countPair, digits = 1)
   
   return(dfEmotion)
 }
