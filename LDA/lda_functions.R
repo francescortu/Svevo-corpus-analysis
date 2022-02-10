@@ -128,7 +128,8 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                        calc_coherence = TRUE,
                        calc_r2 = TRUE,
                        cpus = 4) 
-  
+  s <-summary(compute_silhouette_score(model, display_plot = FALSE))
+  model$silhuette <- as.numeric(s$si.summary[4])
   model$prevalence <- colSums(model$theta) / sum(model$theta) * 100
   model$top_terms <- GetTopTerms(phi = model$phi, M = 20)
   model$labels <- LabelTopics(assignments = model$theta > 0.05, 
