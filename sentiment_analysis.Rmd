@@ -113,6 +113,28 @@ sentiment_people %>%
 
 ```
 
+
+```{r plot sentiment trend over topics}
+#input: one topic 
+#output: a value for each sentiment in the set = {positive, negative, neutral}
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+# get sentiments associated to each topic
+sentiment_topic <- get_sentiment_topic()
+
+#plot
+sentiment_topic <- melt(sentiment_topic, id = c("topic"))
+
+sentiment_topic %>%
+  ggplot() +
+  geom_bar(aes(x = topic, y = value, fill = variable), position = "dodge", stat = "identity")
+
+
+```
+
 ```{r plot emotions trend over time}
 dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";") 
 
