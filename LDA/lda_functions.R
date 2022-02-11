@@ -128,7 +128,8 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                        calc_coherence = TRUE,
                        calc_r2 = TRUE,
                        cpus = 4) 
-  
+  s <-summary(compute_silhouette_score(model, display_plot = FALSE))
+  model$silhuette <- as.numeric(s$si.summary[4])
   model$prevalence <- colSums(model$theta) / sum(model$theta) * 100
   model$top_terms <- GetTopTerms(phi = model$phi, M = 20)
   model$labels <- LabelTopics(assignments = model$theta > 0.05, 
@@ -149,18 +150,39 @@ one_model_analysis <- function(num_topics, corpus, save_results){
 }
 
 #return silhouette score for the model taken in input. If display_plot==TRUE will be diplayed a plot.
+# compute_silhouette_score <- function(model, display_plot){ 
+#   
+#   x<-as.data.frame(model$theta)
+#   
+#   # Hard clustering of documents assign to each document the most likely topic
+#   cluster <- NULL
+#   for(i in c(1:nrow(x))){
+#     cluster[i] <- which.max(x[i,])
+#   }
+#   
+#   #Compute siluette
+#   sil<-silhouette(cluster,CalcHellingerDist(model$theta))
+#   
+#   #plot
+#   if(display_plot == TRUE){
+#     print(fviz_silhouette(sil))
+#   }
+#   
+#   return(sil) 
+# }
+
 compute_silhouette_score <- function(model, display_plot){ 
   
-  x<-as.data.frame(model$theta)
+  x<-as.data.frame(model$gamma)
   
   # Hard clustering of documents assign to each document the most likely topic
   cluster <- NULL
-  for(i in c(1:nrow(x))){
-    cluster[i] <- which.max(x[i,])
+  for(i in c(1:ncol(x))){
+    cluster[i] <- which.max(x[,i])
   }
   
   #Compute siluette
-  sil<-silhouette(cluster,CalcHellingerDist(model$theta))
+  sil<-silhouette(cluster,CalcHellingerDist(model$gamma, by_rows=FALSE))
   
   #plot
   if(display_plot == TRUE){
@@ -169,7 +191,6 @@ compute_silhouette_score <- function(model, display_plot){
   
   return(sil) 
 }
-
 
 topic_trend_over_time <- function(corpus, model) {
   
