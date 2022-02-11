@@ -26,7 +26,6 @@ evaluate_coherence <- function(max_K, corpus, save_results){
   sil <- NULL
   pb <- txtProgressBar(0, max_K, style = 3)
   for(i in c(2:max_K)){
-    setTxtProgressBar(pb, i)
     model <- FitLdaModel(dtm = dtm, 
                                               k = i,
                                               iterations = 500, #  recommend at least 500 iterations or more
@@ -38,9 +37,11 @@ evaluate_coherence <- function(max_K, corpus, save_results){
                                               calc_coherence = TRUE,
                                               calc_r2 = FALSE,
                                               cpus = 1) 
+    
     coher[i] <- mean(model$coherence)
     s <-summary(compute_silhouette_score(model, display_plot = FALSE))
     sil[i] <- as.numeric(s$si.summary[4])
+    setTxtProgressBar(pb, i)
   }
   close(pb)
   
