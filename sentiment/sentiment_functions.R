@@ -122,6 +122,38 @@ get_emotions_pair <- function(dfEmotion){
   return(dfEmotion)
 }
 
+get_emotions_time <- function(dfEmotion){
+  
+  countYear <- dfEmotion %>% 
+    group_by(year) %>%
+    count()
+  
+  dfEmotion <- dfEmotion %>% 
+    group_by(year) %>%
+    summarise(across(everything(), sum))
+  
+  dfEmotion$countYear <- countYear$n
+  dfEmotion[,2:7] <- round(dfEmotion[,2:7]/dfEmotion$countYear, digits = 1)
+  
+  return(dfEmotion)
+}
+
+#TO-MERGE
+get_emotions_pair <- function(dfEmotion){
+  
+  countPair <- dfEmotion %>% 
+    group_by(pair) %>%
+    count()
+  
+  dfEmotion <- dfEmotion %>% 
+    group_by(pair) %>%
+    summarise(across(everything(), sum))
+  
+  dfEmotion$countPair <- countPair$n
+  dfEmotion[,2:7] <- round(dfEmotion[,2:7]/dfEmotion$countPair, digits = 1)
+  
+  return(dfEmotion)
+}
 
 
 
