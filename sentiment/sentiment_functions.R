@@ -39,7 +39,7 @@ get_sentiment_topic <- function() {
   
   #phi gives P(token_v|topic_k)
   k <- 5 # number of topics
-  n <- 40 # number of chosen words
+  n <- 1500 # number of chosen words
   
   tokens_topic <- GetTopTerms(phi = model$phi, M = n,return_matrix = TRUE)
   tokens_topic <- melt(tokens_topic)[,-1]
@@ -75,8 +75,13 @@ get_sentiment_topic <- function() {
     group_by(topic) %>%
     summarise(across(sentiment_labels, sum)) 
   
-  #sentiment_topic <- sentiment_topic  %>% mutate(n = negative/(negative+positive+neutral), p = positive/(negative+positive+neutral),
-  #                                             ne = neutral/(negative+positive+neutral))
+  sentiment_topic <- sentiment_topic  %>% mutate(n = negative/(negative+positive+neutral), p = positive/(negative+positive+neutral),
+                                               ne = neutral/(negative+positive+neutral))
+  
+  sentiment_topic$negative <- sentiment_topic$n
+  sentiment_topic$positive <- sentiment_topic$p
+  sentiment_topic$neutral <- sentiment_topic$ne
+  sentiment_topic <- sentiment_topic[, -((ncol(sentiment_topic) - 2):ncol(sentiment_topic))]
   
   sentiment_topic$topic <- c("salute", "famiglia", "libro", "pensieri", "viaggio" )
   

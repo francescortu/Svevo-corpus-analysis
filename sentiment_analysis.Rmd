@@ -123,11 +123,10 @@ library(ggplot2)
 library(tidyr)
 
 # get sentiments associated to each topic
-sentiment_topic <- get_sentiment_topic()
-
-#plot
-sentiment_topic <- melt(sentiment_topic, id = c("topic"))
-
+sentiment_topic <- get_sentiment_topic() 
+sentiment_topic <-  melt(sentiment_topic, id = c("topic")) %>% group_by(topic) 
+sentiment_topic <- sentiment_topic[order(sentiment_topic$topic),]
+  
 sentiment_topic %>%
   ggplot() +
   geom_bar(aes(x = topic, y = value, fill = variable), position = "dodge", stat = "identity")
