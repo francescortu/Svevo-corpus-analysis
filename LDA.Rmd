@@ -27,7 +27,7 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 # take a lot of time !!!
 perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
 
-coherence_lda <- evaluate_coherence(max_K = 20, corpus_ita, save_results = FALSE)
+coherence_lda <- evaluate_coherence(max_K = 30, corpus_ita, save_results = TRUE)
 
 
 ```
@@ -35,6 +35,7 @@ coherence_lda <- evaluate_coherence(max_K = 20, corpus_ita, save_results = FALSE
 ```{r plot perplexity and coherence}
 library(ggplot2)
 perplexity_lda <- read.csv("csv/perplexity.csv")
+
 
 ggplot(perplexity_lda, aes(x = k, y = perplexity)) +
   geom_point() +
@@ -48,7 +49,7 @@ ggsave("plots/perplexity.png", width = 20, height = 8, dpi = 150)
 coherence_lda <- read.csv("csv/coherence.csv")
 colnames(coherence_lda) <- c("k", "coherence")
 
-ggplot(coherence_lda[2:20,]) +
+ggplot(coherence_lda[2:30,]) +
   geom_point(aes(x = 5, y = coherence_lda$coherence[5]), col = "red", size = 3) +
   geom_line(aes(x = k, y = coherence), col = "violet") + 
   xlab("K") + 
@@ -79,7 +80,7 @@ while (keeping perplexity low) ensuring a good silhouette score.
 
 Build LDA model with a suitable value for k.
 ```{r build lda model, eval=FALSE, include=FALSE, warning = FALSE}
-lda_model_ita <- one_model_analysis(num_topics = 5, corpus_ita, save_results = TRUE)
+lda_model_ita <- one_model_analysis(num_topics = 10, corpus_ita, save_results = TRUE)
 ```
 
 Load pre-trained LDA model

@@ -73,10 +73,11 @@ evaluate_perplexity <- function(corpus, save_results){
   })
   
   folds <- 5
+  k_max <- 30
   splitfolds <- sample(1:folds, n, replace = TRUE)
-  candidate_k <- seq(2,50,2) # candidates for how many topics
+  candidate_k <- seq(2,k_max,2) # candidates for how many topics
   clusterExport(cluster, c("full_data", "burnin", "iter", "keep", "splitfolds", "folds", "candidate_k"))
-  
+
   system.time({
     results <- foreach(j = 1:length(candidate_k), .combine = rbind) %dopar%{
       k <- candidate_k[j]
@@ -87,7 +88,7 @@ evaluate_perplexity <- function(corpus, save_results){
         setTxtProgressBar(pb, i)
         train_set <- full_data[splitfolds != i , ]
         valid_set <- full_data[splitfolds == i, ]
-        
+
         fitted <- LDA(train_set, k = k, method = "Gibbs",
                       control = list(burnin = burnin, iter = iter, keep = keep) )
         results_1k[i,] <- c(k, perplexity(fitted, newdata = valid_set))
@@ -96,7 +97,7 @@ evaluate_perplexity <- function(corpus, save_results){
       return(results_1k)
     }
   })
-  
+
   stopCluster(cluster)
   results_df <- as.data.frame(results)
   if(save_results == TRUE){
