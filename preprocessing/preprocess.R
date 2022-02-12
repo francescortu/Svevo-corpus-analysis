@@ -22,7 +22,7 @@ add_most_frequent <- function(corpus) {
   most_frequent <- words_tf_idf %>%
     group_by(word, idf) %>%
     count(nm = word) %>%
-    filter(idf < 0.7) 
+    filter(idf < 0.7) # words which appear in more than ~100 documents
   
   return(most_frequent$word)
 }
