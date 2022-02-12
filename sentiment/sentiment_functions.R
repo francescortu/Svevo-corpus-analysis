@@ -30,8 +30,7 @@ get_sentiment <- function(docs, corpus) {
   return(docs)
 }
 
-############################################## TO-MERGE #########################################
-#############################################################################################
+
 get_emotions_time <- function(dfEmotion){
   
   countYear <- dfEmotion %>% 
@@ -48,7 +47,7 @@ get_emotions_time <- function(dfEmotion){
   return(dfEmotion)
 }
 
-#TO-MERGE
+
 get_emotions_pair <- function(dfEmotion){
   
   countPair <- dfEmotion %>% 
@@ -65,7 +64,6 @@ get_emotions_pair <- function(dfEmotion){
   return(dfEmotion)
 }
 
-################################################################################################
-################################################################################################
+
 
 

@@ -112,19 +112,15 @@ ggplot() +
   geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
   geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
   geom_line(data = dfEmotionTime, aes(x = year, y = fear, colour = "Fear"), group = 1) +
-  geom_line(data = dfEmotionTIme, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = anger, colour = "Anger"), group = 1) +
   labs(color = "Emotions")
   
 ```
 
-```{r}
-dfEmotionPair <- read.csv("csv/sentiment_pair.csv")
-dfEmotionPair <- get_emotions_pair()
-```
 
 
 ```{r plot emotions trend over time}
-#TO-MERGE
+
 dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";", encoding = "UTF-8") 
 dfEmotion
 dfEmotionTime <- dfEmotion
