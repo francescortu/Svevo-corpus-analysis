@@ -38,9 +38,11 @@ evaluate_coherence <- function(max_K, corpus, save_results){
                                               calc_coherence = TRUE,
                                               calc_r2 = FALSE,
                                               cpus = 1) 
+    
     coher[i] <- mean(model$coherence)
     s <-summary(compute_silhouette_score(model, display_plot = FALSE))
     sil[i] <- as.numeric(s$si.summary[4])
+    setTxtProgressBar(pb, i)
   }
   close(pb)
   
@@ -117,7 +119,7 @@ one_model_analysis <- function(num_topics, corpus, save_results){
                    remove_numbers = FALSE, 
                    verbose = TRUE,
                    cpus = 4) # default is all available cpus on the system
-  set.seed(1254)
+  set.seed(12549)
   model <- FitLdaModel(dtm = dtm, 
                        k = num_topics,
                        iterations = 800, #  recommend at least 500 iterations or more

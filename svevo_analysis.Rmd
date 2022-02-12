@@ -31,7 +31,7 @@ ggplot(corpus, aes(x=as.factor(mainLanguage), fill=as.factor(mainLanguage))) +
   labs(x = "language", y = "number of letters")
 
 # italian letters are the: 92.39%
-count(corpus[which(corpus$first_language == "ITA"),])/nrow(corpus)
+count(corpus[which(corpus$mainLanguage == "ITA"),])/nrow(corpus)
 
 
 # see to who are the letters sent to

@@ -27,7 +27,9 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 # take a lot of time !!!
 perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
 
+
 coherence_lda <- evaluate_coherence(max_K = 30, corpus_ita, save_results = TRUE)
+
 
 
 ```
@@ -49,6 +51,7 @@ ggsave("plots/perplexity.png", width = 20, height = 8, dpi = 150)
 coherence_lda <- read.csv("csv/coherence.csv")
 colnames(coherence_lda) <- c("k", "coherence")
 
+
 ggplot(coherence_lda[2:30,]) +
   geom_point(aes(x = 5, y = coherence_lda$coherence[5]), col = "red", size = 3) +
   geom_line(aes(x = k, y = coherence), col = "violet") + 
@@ -64,7 +67,7 @@ silhouette_lda <- read.csv("csv/silhouette.csv")
 ggplot(silhouette_lda, aes(x = X, y = x)) +
   geom_point() +
   geom_point(aes(x = 5, y = silhouette_lda$x[5]), col = "red") +
-  geom_smooth(se = FALSE) +
+  geom_line(aes(x=X, y=x)) +
   labs(x = "K", y = "silhouette score")
 
 ggsave("plots/silhouette.png", width = 20, height = 8, dpi = 150)
@@ -80,7 +83,9 @@ while (keeping perplexity low) ensuring a good silhouette score.
 
 Build LDA model with a suitable value for k.
 ```{r build lda model, eval=FALSE, include=FALSE, warning = FALSE}
+
 lda_model_ita <- one_model_analysis(num_topics = 10, corpus_ita, save_results = TRUE)
+
 ```
 
 Load pre-trained LDA model
@@ -92,17 +97,51 @@ lda_model_ita <- readRDS("LDA/LDA_corpus_topic_model.rds")
 Analysis of main topics obtained.
 ```{r}
 #print summary table
-lda_model_ita$summary[ order(lda_model_ita$summary$prevalence, decreasing = TRUE) , ]
+lda_model_ita$summary[ order(lda_model_ita$summary$prevalence + lda_model_ita$summary$coherence*50, decreasing = TRUE) , ][1:10,]
+
+
 SummarizeTopics(lda_model_ita)
 
 ```
 
+We can see some topics are overlapping, so let's choose a subset of the most distant ones.
+
+
+```{r}
+lda_ita <- lda_model_ita
+lda_ita$topic_linguistic_dist <- CalcHellingerDist(lda_ita$phi)
+lda_ita$hclust <- hclust(as.dist(lda_ita$topic_linguistic_dist), "ward.D2")
+lda_ita$hclust$labels <- paste(lda_ita$hclust$labels, lda_ita$labels[ , 1])
+plot(lda_ita$hclust)
+
+```
+
+```{r}
+library(Matrix)
+# see distances in a table
+d <- round(lda_ita$topic_linguistic_dist,3)
+table(d)
+# we need to find the first n topics which are the most distant from all the others
+rowSums(d)
+lda_ita$summary$distance <- rowSums(d)
+#order with respect to distance of topics from all the others
+#most_distant <- names(sort(rowSums(d), decreasing = TRUE))
+#order wrt to prevalence and coherence of the single topic 
+
+prevalence <- lda_ita$summary$prevalence/sum(lda_model_ita$summary$prevalence)
+distance <- lda_ita$summary$distance/sum(lda_ita$summary$distance)
+coherence <- lda_ita$summary$coherence/sum(lda_model_ita$summary$coherence)
+lda_ita$summary[ order(distance*10 + prevalence + coherence, decreasing = TRUE) , ]
+
+```
 
 Now assign suitable labels to topics:
 
 ```{r}
 
+
 lda_model_ita$labels <- c("salute", "sentimenti", "viaggio", "pensieri", "libro" )
+
 
 ```
 
@@ -130,6 +169,7 @@ sum_topic <- topic_time %>%
   group_by(date) %>%
   summarise(across(everything(), sum)) 
 
+
 count <- (topic_time %>% count(date))$n
 sum_topic$n <- count
 
@@ -143,6 +183,8 @@ sum_topic %>%
     geom_line(aes(x=date, y=value[61:90]/n, colour=key[61], group = 1),ylab="")+
     geom_line(aes(x=date, y=value[91:120]/n, colour=key[91], group = 1),ylab="")+
     geom_line(aes(x=date, y=value[121:150]/n, colour=key[121], group = 1),ylab="")
+
+
 
 sum_topic <- melt(sum_topic, id = c("date","n"))
 
@@ -175,7 +217,6 @@ sum_topic <- topic_people %>%
   group_by(pair, count) %>%
   summarise(across(everything(), sum)) 
 
-
 sum_topic <- melt(sum_topic, id = c("pair", "count"))
 
 sum_topic %>%
@@ -184,4 +225,26 @@ sum_topic %>%
 
 ```
 
+```{r}
 
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+sum_topic <- topic_people %>%
+  group_by(pair) %>%
+  mutate(count = n()) %>%
+  filter(count > 4) %>%
+  group_by(pair, count) %>%
+  summarise(across(everything(), sum)) 
+
+for(i in 3:7)
+  sum_topic[,i] <- sum_topic[,i]/sum(sum_topic[,i])
+
+sum_topic <- melt(sum_topic, id = c("pair", "count"))
+
+sum_topic %>%
+  ggplot() + 
+  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")
+
+```

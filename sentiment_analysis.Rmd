@@ -9,26 +9,20 @@ Sentiment analysis of italian letter in Svevo Corpus.
 ```{r load dataset, warning = FALSE}
 # load functions for sentiment analysis
 source("sentiment/sentiment_functions.R")
-
-
 # Load dataset with lemmatized words
 corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = "UTF-8")
-
 library(tidyverse)
 library(tidytext)
 library(textdata)
-
 document_words <- corpus_ita %>%
   unnest_tokens(word, tokens) %>%
   count(letter_number, word)
-
 ```
 
 Summarise sentiments for all documents in our corpus:
 ```{r, warning = FALSE}
 # assign positive-negative-neutral scores to all the documents
 sentiment_docs <- get_sentiment(document_words, corpus_ita) #takes a little bit of time 
-
 ```
 
 
@@ -37,28 +31,19 @@ Analyze how sentiments evolved over time:
 ```{r plot sentiment trend over time}
 #input: set of sentiments {positive, negative, neutral}
 #output: their trend over time
-
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-
 sentiment_labels <- c("neutral", "positive", "negative")
-
 sentiment_time <- sentiment_docs %>%
   group_by(date) %>%
   summarise(across(sentiment_labels, sum))
-
 sentiment_time <- sentiment_time  %>% mutate(n = negative/(negative+positive+neutral), p = positive/(negative+positive+neutral),
                                              ne = neutral/(negative+positive+neutral))
-
 sentiment_time$negative <- sentiment_time$n
 sentiment_time$positive <- sentiment_time$p
 sentiment_time$neutral <- sentiment_time$ne
-
 sentiment_time[, -((ncol(sentiment_time) - 2):ncol(sentiment_time))]
-
-
-
 sentiment_time %>%
    # gather(key, value, sentiment_labels) %>%
     ggplot() +
@@ -70,58 +55,80 @@ sentiment_time %>%
     geom_point(aes(x=date, y=positive, colour="positive", group = 1),ylab="") +
     scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
     labs( y = "") 
-
 sentiment_time %>%
   gather(key, value, sentiment_labels) %>%
   ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
   geom_bar(stat = "identity", position = "dodge") 
-
 ```
 
 ```{r plot sentiment trend over people}
 #input: set of sentiments {positive, negative, neutral}
 #output: their trend over people
-
 library(dplyr)
 library(ggplot2)
 library(tidyr)
-
 sentiment_labels <- c("neutral", "positive", "negative")
-
 sentiment_people <- sentiment_docs[,-1] %>%
   group_by(pair) %>%
   mutate(count = n()) %>%
   filter(count > 2) %>%
   group_by(pair, count) %>%
   summarise(across(sentiment_labels, sum)) 
-
 sentiment_people <- sentiment_people  %>% mutate(n = 100*negative/(negative+positive+neutral),
                                                  p = 100*positive/(negative+positive+neutral),
                                                   ne = 100*neutral/(negative+positive+neutral))
-
 sentiment_people$negative <- sentiment_people$n
 sentiment_people$positive <- sentiment_people$p
 sentiment_people$neutral <- sentiment_people$ne
 sentiment_people <- sentiment_people[, -((ncol(sentiment_people) - 2):ncol(sentiment_people))]
-
-
 sentiment_people <- melt(sentiment_people, id = c("pair", "count"))
-
 sentiment_people %>%
   ggplot() + 
   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
-
 ```
 
-####################### ######################################## TO-MERGE #################################################################
-##########################################################################################################################################
+
+```{r plot sentiment trend over topics}
+#input: one topic 
+#output: a value for each sentiment in the set = {positive, negative, neutral}
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+# get sentiments associated to each topic
+sentiment_topic <- get_sentiment_topic() 
+sentiment_topic <-  melt(sentiment_topic, id = c("topic")) %>% group_by(topic) 
+sentiment_topic <- sentiment_topic[order(sentiment_topic$topic),]
+  
+sentiment_topic %>%
+  ggplot() +
+  geom_bar(aes(x = topic, y = value, fill = variable), position = "dodge", stat = "identity")
+```
+
+```{r plot emotions trend over time}
+dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";") 
+dfEmotionTime <- dfEmotion
+dfEmotionTime <- get_emotions_time(dfEmotionTime)
+ggplot() + 
+  geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
+  geom_line(data = dfEmotionTime, aes(x = year, y = fear, colour = "Fear"), group = 1) +
+  geom_line(data = dfEmotionTIme, aes(x = year, y = anger, colour = "Anger"), group = 1) +
+  labs(color = "Emotions")
+  
+```
+
+```{r}
+dfEmotionPair <- read.csv("csv/sentiment_pair.csv")
+dfEmotionPair <- get_emotions_pair()
+```
+
+
 ```{r plot emotions trend over time}
 #TO-MERGE
 dfEmotion <- read.csv("csv/sentiment_year.csv", sep = ";", encoding = "UTF-8") 
 dfEmotion
 dfEmotionTime <- dfEmotion
 dfEmotionTime <- get_emotions_time(dfEmotionTime)
-
 ggplot() + 
   geom_line(data = dfEmotionTime, aes(x = year, y = sadness, colour = "Sadness"), group = 1) +
   geom_line(data = dfEmotionTime, aes(x = year, y = joy, colour = "Joy"), group = 1) +
@@ -133,31 +140,22 @@ ggsave("plots/emotionOnTime.png", width=16, height=9, dpi=200)
 ```
 
 ```{r}
-
 dfEmotionPair <- read.csv("csv/sentiment_pair.csv", sep = ";", encoding = "UTF-8")
-
 dfEmotionPair <- get_emotions_pair(dfEmotionPair)
   
 dfEmotionPairTmp <- dfEmotionPair
 dfEmotionPairTmp$countPair <- NULL
 dfEmotionPairTmp$positive <- NULL
 dfEmotionPairTmp$negative <- NULL
-
 emotion_people <- melt(dfEmotionPairTmp, id = c("pair"))
-
 emotion_people$Emotions <- emotion_people$variable
 emotion_people$variable <- NULL
 emotion_people$Person <- emotion_people$pair
 emotion_people$pair <- NULL
-
 emotion_people %>%
   ggplot() +
   geom_bar(aes(x = Person, y = value, fill = Emotions), position = "fill", stat = "identity") +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   labs(variable = "Emotions")
-
 ggsave("plots/emotionOnPeople.png", width=16, height=9, dpi=200)
-
 ```
-#################################################################################################################################
-###############################################################################################################################
