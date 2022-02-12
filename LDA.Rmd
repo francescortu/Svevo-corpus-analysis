@@ -25,10 +25,10 @@ corpus_ita <- read.csv("csv/cleaned_svevo_dataset_ITA.csv", sep=",", encoding = 
 
 ```{r evaluate perplexity and coherence, eval=FALSE, warning = FALSE}
 # take a lot of time !!!
-perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = TRUE)
+perplexity_lda <- evaluate_perplexity(corpus_ita, save_results = FALSE)
 
 
-coherence_lda <- evaluate_coherence(max_K = 30, corpus_ita, save_results = TRUE)
+coherence_lda <- evaluate_coherence(max_K = 30, corpus_ita, save_results = FALSE)
 
 
 
@@ -110,7 +110,7 @@ We can see some topics are overlapping, so let's choose a subset of the most dis
 ```{r}
 lda_ita <- lda_model_ita
 lda_ita$topic_linguistic_dist <- CalcHellingerDist(lda_ita$phi)
-lda_ita$hclust <- hclust(as.dist(lda_ita$topic_linguistic_dist), "ward.D2")
+lda_ita$hclust <- hclust(as.dist(lda_ita$topic_linguistic_dist), "average")
 lda_ita$hclust$labels <- paste(lda_ita$hclust$labels, lda_ita$labels[ , 1])
 plot(lda_ita$hclust)
 
