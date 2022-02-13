@@ -135,7 +135,7 @@ Now assign suitable labels to topics:
 ```{r}
 
 
-lda_model_ita$labels <- c("libro", "famiglia", "malattia", "viaggio", "pensieri")
+lda_model_ita$labels <- c("libro", "famiglia", "malattia", "affari", "pensieri")
 
 
 ```
@@ -166,21 +166,19 @@ library(reshape2)
 sum_topic <- topic_time %>% group_by(date) %>% dplyr::summarise(across(everything(), sum)) 
 
 
-count <- (topic_time %>% count(date))
+count <- (topic_time %>% count(date))$n
 sum_topic$n <- count
 
-n<-1
 
 sum_topic %>%
     gather(key, value, lda_model_ita$labels) %>%
     ggplot() +
     geom_point(aes(x=date, y=value/n, colour=key, group = 1),ylab="") +
-    geom_line(aes(x=date, y=value[1:30]/n, colour=key[1], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[31:60]/n, colour=key[31], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[61:90]/n, colour=key[61], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[91:120]/n, colour=key[91], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[121:150]/n, colour=key[121], group = 1),ylab="")
-
+    geom_line(aes(x=date, y=value[1:31]/n, colour=key[1], group = 1),ylab="")+
+    geom_line(aes(x=date, y=value[32:62]/n, colour=key[32], group = 1),ylab="")+
+    geom_line(aes(x=date, y=value[63:93]/n, colour=key[63], group = 1),ylab="")+
+    geom_line(aes(x=date, y=value[94:124]/n, colour=key[94], group = 1),ylab="")+
+    geom_line(aes(x=date, y=value[125:155]/n, colour=key[125], group = 1),ylab="")
 
 
 sum_topic <- melt(sum_topic, id = c("date","n"))
