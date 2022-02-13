@@ -125,8 +125,8 @@ table(d)
 ```
 Cluster topics in 5 groups:
 ```{r}
-cutree(lda_ita$hclust, 5)
-
+lda_model_ita$hclust <- cutree(lda_ita$hclust, 5)
+lda_model_ita <- make_cluster_theta(lda_model_ita)
 ```
 
 Now assign suitable labels to topics:
@@ -134,7 +134,7 @@ Now assign suitable labels to topics:
 ```{r}
 
 
-lda_model_ita$labels <- c("libro", "famiglia", "famiglia", "malattia", "libro", "viaggio", "viaggio", "pensieri", "famiglia", "pensieri")
+lda_model_ita$labels <- c("libro", "famiglia", "malattia", "libro", "viaggio", "pensieri")
 
 
 ```
@@ -149,7 +149,7 @@ Analyze how topics evolved over time:
 # number are those of italian letters in the original corpus
 
 topic_time <- topic_trend_over_time(corpus_ita, lda_model_ita)
-names(topic_time)[1:10] <- lda_model_ita$labels
+names(topic_time)[1:5] <- lda_model_ita$labels
 
 # sum row-wise columns with same label
 #(apply(topic_time[1:10],1, function(x) tapply(x,colnames(topic_time),sum)))
