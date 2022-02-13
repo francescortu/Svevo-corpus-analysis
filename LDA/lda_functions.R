@@ -196,7 +196,6 @@ compute_silhouette_score <- function(model, display_plot){
 }
 
 topic_trend_over_time <- function(corpus, model) {
-  model$theta <- get_cluster_theta(model$theta)
   topic_time <- data.frame(model$theta)
   topic_time$date <- format(as.Date(corpus$date, format="%d/%m/%Y"),"%Y")
   
@@ -218,10 +217,9 @@ topic_trend_over_people <- function(corpus, model) {
 
 #cluster column of theta: EACH COLUMN DO NOT SUM TO 1
 make_cluster_theta <- function(model){
-  df <- data.frame(matrix(ncol = 5, nrow = nrow(model$theta)))
   for(i in c(1:5)){
     if(sum(unname(model$hclust) == i) > 1){
-      model$theta[,i]<-rowSums(model$theta[,which(unname(model$hclust) == i)])
+      model$theta[,i]<-rowSums(model$theta[,which(unname(model$hclust) == i)]) #/sum(unname(model$hclust == i))
     }
   }
   model$theta<- model$theta[,-(6:10)]

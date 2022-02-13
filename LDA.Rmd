@@ -61,6 +61,7 @@ ggplot(coherence_lda[2:30,]) +
 ggsave("plots/coherence.png", width = 20, height = 8, dpi = 150)
 
 ```
+
 ```{r plot silhouette}
 silhouette_lda <- read.csv("csv/silhouette.csv")
 
@@ -134,7 +135,7 @@ Now assign suitable labels to topics:
 ```{r}
 
 
-lda_model_ita$labels <- c("libro", "famiglia", "malattia", "libro", "viaggio", "pensieri")
+lda_model_ita$labels <- c("libro", "famiglia", "malattia", "viaggio", "pensieri")
 
 
 ```
@@ -162,14 +163,13 @@ library(ggplot2)
 library(tidyr)
 library(reshape2)
 
-sum_topic <- topic_time %>%
-  group_by(date) %>%
-  summarise(across(everything(), sum)) 
+sum_topic <- topic_time %>% group_by(date) %>% dplyr::summarise(across(everything(), sum)) 
 
 
-count <- (topic_time %>% count(date))$n
+count <- (topic_time %>% count(date))
 sum_topic$n <- count
 
+n<-1
 
 sum_topic %>%
     gather(key, value, lda_model_ita$labels) %>%
@@ -212,7 +212,7 @@ sum_topic <- topic_people %>%
   mutate(count = n()) %>%
   filter(count > 4) %>%
   group_by(pair, count) %>%
-  summarise(across(everything(), sum)) 
+  dplyr::summarise(across(everything(), sum)) 
 
 sum_topic <- melt(sum_topic, id = c("pair", "count"))
 
