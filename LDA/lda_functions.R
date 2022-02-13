@@ -216,12 +216,15 @@ topic_trend_over_people <- function(corpus, model) {
 }
 
 #cluster column of theta: EACH COLUMN DO NOT SUM TO 1
-make_cluster_theta <- function(model){
+make_cluster_theta <- function(model, save_result){
   for(i in c(1:5)){
     if(sum(unname(model$hclust) == i) > 1){
       model$theta[,i]<-rowSums(model$theta[,which(unname(model$hclust) == i)]) #/sum(unname(model$hclust == i))
     }
   }
   model$theta<- model$theta[,-(6:10)]
+  if(save_result == TRUE){
+    saveRDS(model, file = "LDA/LDA_corpus_topic_model.rds")
+  }
   return(model)
 }
