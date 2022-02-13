@@ -53,8 +53,7 @@ colnames(coherence_lda) <- c("k", "coherence")
 
 
 ggplot(coherence_lda[2:30,]) +
-  geom_point(aes(x = 5, y = coherence_lda$coherence[5]), col = "red", size = 3) +
-  geom_line(aes(x = k, y = coherence), col = "violet") + 
+  geom_line(aes(x = X, y = x), col = "black") + 
   xlab("K") + 
   ylab("Coherence")
 
