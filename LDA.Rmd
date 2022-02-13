@@ -124,9 +124,10 @@ table(d)
 
 ```
 Cluster topics in 5 groups:
-```{r}
+```{r cluster}
 lda_model_ita$hclust <- cutree(lda_ita$hclust, 5)
 lda_model_ita <- make_cluster_theta(lda_model_ita, save_result=TRUE)
+lda_model_ita <- make_cluster_phi(lda_model_ita, save_result=TRUE)
 ```
 
 Now assign suitable labels to topics:
