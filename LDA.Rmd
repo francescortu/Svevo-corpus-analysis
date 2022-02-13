@@ -97,21 +97,21 @@ lda_model_ita <- readRDS("LDA/LDA_corpus_topic_model.rds")
 Analysis of main topics obtained.
 ```{r}
 #print summary table
-lda_model_ita$summary[ order(lda_model_ita$summary$prevalence + lda_model_ita$summary$coherence*50, decreasing = TRUE) , ][1:10,]
+lda_model_ita$summary[ order(lda_model_ita$summary$prevalence, decreasing = TRUE) , ]
 
 
 SummarizeTopics(lda_model_ita)
 
 ```
 
-We can see some topics are overlapping, so let's choose a subset of the most distant ones.
+We can see some topics are overlapping; let's further analyze distances between topicd.
 
 
 ```{r}
 lda_ita <- lda_model_ita
 lda_ita$topic_linguistic_dist <- CalcHellingerDist(lda_ita$phi)
 lda_ita$hclust <- hclust(as.dist(lda_ita$topic_linguistic_dist), "average")
-lda_ita$hclust$labels <- paste(lda_ita$hclust$labels, lda_ita$labels[ , 1])
+#lda_ita$hclust$labels <- paste(lda_ita$hclust$labels, lda_ita$labels[ , 1])
 plot(lda_ita$hclust)
 
 ```
@@ -121,17 +121,11 @@ library(Matrix)
 # see distances in a table
 d <- round(lda_ita$topic_linguistic_dist,3)
 table(d)
-# we need to find the first n topics which are the most distant from all the others
-rowSums(d)
-lda_ita$summary$distance <- rowSums(d)
-#order with respect to distance of topics from all the others
-#most_distant <- names(sort(rowSums(d), decreasing = TRUE))
-#order wrt to prevalence and coherence of the single topic 
 
-prevalence <- lda_ita$summary$prevalence/sum(lda_model_ita$summary$prevalence)
-distance <- lda_ita$summary$distance/sum(lda_ita$summary$distance)
-coherence <- lda_ita$summary$coherence/sum(lda_model_ita$summary$coherence)
-lda_ita$summary[ order(distance*10 + prevalence + coherence, decreasing = TRUE) , ]
+```
+Cluster topics in 5 groups:
+```{r}
+cutree(lda_ita$hclust, 5)
 
 ```
 
@@ -140,7 +134,7 @@ Now assign suitable labels to topics:
 ```{r}
 
 
-lda_model_ita$labels <- c("salute", "sentimenti", "viaggio", "pensieri", "libro" )
+lda_model_ita$labels <- c("libro", "famiglia", "famiglia", "malattia", "libro", "viaggio", "viaggio", "pensieri", "famiglia", "pensieri")
 
 
 ```
@@ -155,7 +149,10 @@ Analyze how topics evolved over time:
 # number are those of italian letters in the original corpus
 
 topic_time <- topic_trend_over_time(corpus_ita, lda_model_ita)
-names(topic_time)[1:5] <- lda_model_ita$labels
+names(topic_time)[1:10] <- lda_model_ita$labels
+
+# sum row-wise columns with same label
+#(apply(topic_time[1:10],1, function(x) tapply(x,colnames(topic_time),sum)))
 
 ```
 
