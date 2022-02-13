@@ -40,8 +40,9 @@ get_sentiment_topic <- function() {
   k <- 5 # number of topics
   n <- 1500 # number of chosen words
   
-  tokens_topic <- GetTopTerms(phi = model$phi, M = n,return_matrix = TRUE)
-  tokens_topic <- melt(tokens_topic)[,-1]
+  tokens_topic <- as.data.frame(GetTopTerms(phi = model$phi, M = n,return_matrix = TRUE))
+  tokens_topic$id <- row.names(tokens_topic)
+  tokens_topic <- melt(tokens_topic,id="id")[,-1]
   colnames(tokens_topic) <- c("topic", "word")
   tokens_topic$probability <- NA
   tokens_topic$positive <- 0
