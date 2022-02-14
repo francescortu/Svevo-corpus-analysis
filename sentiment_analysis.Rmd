@@ -49,7 +49,6 @@ sentiment_time$neutral <- sentiment_time$ne
 sentiment_time[, -((ncol(sentiment_time) - 2):ncol(sentiment_time))]
 
 sentiment_time %>%
-   # gather(key, value, sentiment_labels) %>%
     ggplot() +
     geom_line(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="")+
     geom_point(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="") +
@@ -58,11 +57,12 @@ sentiment_time %>%
     geom_line(aes(x=date, y=positive, colour="positive", group = 1),ylab="")+
     geom_point(aes(x=date, y=positive, colour="positive", group = 1),ylab="") +
     scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
-    labs( y = "") 
-sentiment_time %>%
-  gather(key, value, sentiment_labels) %>%
-  ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
-  geom_bar(stat = "identity", position = "dodge") 
+    labs( y = "") +
+    theme(legend.title=element_blank(), 
+    legend.text=element_text(size=9))
+
+ggsave(paste0( "plots/sentiment_time.png"), width = 20, height = 12, dpi = 150)
+
 ```
 
 ```{r plot sentiment trend over people}
@@ -89,6 +89,7 @@ sentiment_people$positive <- sentiment_people$p
 sentiment_people$neutral <- sentiment_people$ne
 sentiment_people <- sentiment_people[, -((ncol(sentiment_people) - 2):ncol(sentiment_people))]
 sentiment_people <- melt(sentiment_people, id = c("pair", "count"))
+
 sentiment_people %>%
   ggplot() + 
   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")
