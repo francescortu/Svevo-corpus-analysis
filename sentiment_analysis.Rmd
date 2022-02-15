@@ -34,18 +34,21 @@ Analyze how sentiments evolved over time:
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+
 sentiment_labels <- c("neutral", "positive", "negative")
+
 sentiment_time <- sentiment_docs %>%
   group_by(date) %>%
   summarise(across(sentiment_labels, sum))
+
 sentiment_time <- sentiment_time  %>% mutate(n = negative/(negative+positive+neutral), p = positive/(negative+positive+neutral),
                                              ne = neutral/(negative+positive+neutral))
 sentiment_time$negative <- sentiment_time$n
 sentiment_time$positive <- sentiment_time$p
 sentiment_time$neutral <- sentiment_time$ne
 sentiment_time[, -((ncol(sentiment_time) - 2):ncol(sentiment_time))]
+
 sentiment_time %>%
-   # gather(key, value, sentiment_labels) %>%
     ggplot() +
     geom_line(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="")+
     geom_point(aes(x=date, y=neutral, colour="neutral", group = 1),ylab="") +
@@ -54,11 +57,12 @@ sentiment_time %>%
     geom_line(aes(x=date, y=positive, colour="positive", group = 1),ylab="")+
     geom_point(aes(x=date, y=positive, colour="positive", group = 1),ylab="") +
     scale_colour_manual(values = c("positive" = "#fcba03", "negative" = "#097aab", "neutral" = "black")) +
-    labs( y = "") 
-sentiment_time %>%
-  gather(key, value, sentiment_labels) %>%
-  ggplot( aes(x = date, y = value, fill=key, group = 1),ylab="") +
-  geom_bar(stat = "identity", position = "dodge") 
+    labs( y = "") +
+    theme(legend.title=element_blank(), 
+    legend.text=element_text(size=9))
+
+ggsave(paste0( "plots/sentiment_time.png"), width = 20, height = 12, dpi = 150)
+
 ```
 
 ```{r plot sentiment trend over people}
@@ -67,13 +71,16 @@ sentiment_time %>%
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+
 sentiment_labels <- c("neutral", "positive", "negative")
+
 sentiment_people <- sentiment_docs[,-1] %>%
   group_by(pair) %>%
   mutate(count = n()) %>%
   filter(count > 2) %>%
   group_by(pair, count) %>%
   summarise(across(sentiment_labels, sum)) 
+
 sentiment_people <- sentiment_people  %>% mutate(n = 100*negative/(negative+positive+neutral),
                                                  p = 100*positive/(negative+positive+neutral),
                                                   ne = 100*neutral/(negative+positive+neutral))
@@ -82,6 +89,7 @@ sentiment_people$positive <- sentiment_people$p
 sentiment_people$neutral <- sentiment_people$ne
 sentiment_people <- sentiment_people[, -((ncol(sentiment_people) - 2):ncol(sentiment_people))]
 sentiment_people <- melt(sentiment_people, id = c("pair", "count"))
+
 sentiment_people %>%
   ggplot() + 
   geom_bar(aes(x = pair, y = value, fill = variable), position = "dodge", stat = "identity")

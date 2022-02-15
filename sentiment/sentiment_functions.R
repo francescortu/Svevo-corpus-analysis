@@ -175,7 +175,3 @@ get_emotions_pair <- function(dfEmotion){
   
   return(dfEmotion)
 }
-
-
-
-

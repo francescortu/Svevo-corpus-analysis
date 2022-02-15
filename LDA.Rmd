@@ -124,10 +124,9 @@ table(d)
 
 ```
 Cluster topics in 5 groups:
-```{r cluster}
+```{r}
 lda_model_ita$hclust <- cutree(lda_ita$hclust, 5)
 lda_model_ita <- make_cluster_theta(lda_model_ita, save_result=TRUE)
-lda_model_ita <- make_cluster_phi(lda_model_ita, save_result=TRUE)
 ```
 
 Now assign suitable labels to topics:
@@ -152,8 +151,6 @@ Analyze how topics evolved over time:
 topic_time <- topic_trend_over_time(corpus_ita, lda_model_ita)
 names(topic_time)[1:5] <- lda_model_ita$labels
 
-# sum row-wise columns with same label
-#(apply(topic_time[1:10],1, function(x) tapply(x,colnames(topic_time),sum)))
 
 ```
 
@@ -178,14 +175,14 @@ sum_topic %>%
     geom_line(aes(x=date, y=value[32:62]/n, colour=key[32], group = 1),ylab="")+
     geom_line(aes(x=date, y=value[63:93]/n, colour=key[63], group = 1),ylab="")+
     geom_line(aes(x=date, y=value[94:124]/n, colour=key[94], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[125:155]/n, colour=key[125], group = 1),ylab="")
+    geom_line(aes(x=date, y=value[125:155]/n, colour=key[125], group = 1),ylab="")+
+    labs(y = "") +
+    theme(legend.title=element_blank(), 
+    legend.text=element_text(size=9))
+
+ggsave(paste0( "plots/topics_time.png"), width = 20, height = 12, dpi = 150)
 
 
-sum_topic <- melt(sum_topic, id = c("date","n"))
-
-sum_topic %>%
-  ggplot() + 
-  geom_bar(aes(x = date, y = value/n, fill = variable), position = "dodge", stat = "identity")
 ```
 
 ```{r}
@@ -216,7 +213,13 @@ sum_topic <- melt(sum_topic, id = c("pair", "count"))
 
 sum_topic %>%
   ggplot() + 
-  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")
+  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")+
+  labs(y = "") +
+  theme(legend.title=element_blank(), 
+  legend.text=element_text(size=9))
+
+
+ggsave(paste0( "plots/topics_people.png"), width = 20, height = 12, dpi = 150)
 
 ```
 
