@@ -133,9 +133,7 @@ Now assign suitable labels to topics:
 
 ```{r}
 
-
 lda_model_ita$labels <- c("libro", "famiglia", "malattia", "affari", "pensieri")
-
 
 ```
 
@@ -171,16 +169,19 @@ sum_topic %>%
     gather(key, value, lda_model_ita$labels) %>%
     ggplot() +
     geom_point(aes(x=date, y=value/n, colour=key, group = 1),ylab="") +
-    geom_line(aes(x=date, y=value[1:31]/n, colour=key[1], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[32:62]/n, colour=key[32], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[63:93]/n, colour=key[63], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[94:124]/n, colour=key[94], group = 1),ylab="")+
-    geom_line(aes(x=date, y=value[125:155]/n, colour=key[125], group = 1),ylab="")+
+    geom_line(aes(x=date, y=value[1:31]/n, colour=key[1], group = 1),size = 2, ylab="")+
+    geom_line(aes(x=date, y=value[32:62]/n, colour=key[32], group = 1),size = 2,ylab="")+
+    geom_line(aes(x=date, y=value[63:93]/n, colour=key[63], group = 1),size = 2,ylab="")+
+    geom_line(aes(x=date, y=value[94:124]/n, colour=key[94], group = 1),size = 2,ylab="")+
+    geom_line(aes(x=date, y=value[125:155]/n, colour=key[125], group = 1),size = 2,ylab="")+
     labs(y = "") +
-    theme(legend.title=element_blank(), 
-    legend.text=element_text(size=9))
+    theme(legend.key.size = unit(2, 'cm'))+
+    theme(legend.title=element_blank(),
+    legend.text=element_text(size=30))+
+    theme(axis.text=element_text(size=15),
+    axis.title=element_text(size=14,face="bold"), axis.text.x = element_text(angle = 45,  hjust=1))
 
-ggsave(paste0( "plots/topics_time.png"), width = 20, height = 12, dpi = 150)
+ggsave(paste0( "plots/topics_time.png"), width = 25, height = 12, dpi = 150)
 
 
 ```
@@ -214,35 +215,16 @@ sum_topic <- melt(sum_topic, id = c("pair", "count"))
 sum_topic %>%
   ggplot() + 
   geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")+
-  labs(y = "") +
+  labs(y = "", x="") +
+  theme(legend.key.size = unit(2, 'cm'))+
   theme(legend.title=element_blank(), 
-  legend.text=element_text(size=9))
+  legend.text=element_text(size=30))+
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=14,face="bold"))
 
 
-ggsave(paste0( "plots/topics_people.png"), width = 20, height = 12, dpi = 150)
-
-```
-
-```{r}
-
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-
-sum_topic <- topic_people %>%
-  group_by(pair) %>%
-  mutate(count = n()) %>%
-  filter(count > 4) %>%
-  group_by(pair, count) %>%
-  summarise(across(everything(), sum)) 
-
-for(i in 3:7)
-  sum_topic[,i] <- sum_topic[,i]/sum(sum_topic[,i])
-
-sum_topic <- melt(sum_topic, id = c("pair", "count"))
-
-sum_topic %>%
-  ggplot() + 
-  geom_bar(aes(x = pair, y = value/count, fill = variable), position = "dodge", stat = "identity")
+ggsave(paste0( "plots/topics_people.png"), width = 25, height = 12, dpi = 150)
 
 ```
+
+
